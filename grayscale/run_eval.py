@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CLI wrapper that submits a grayscale kernel to the deployed Modal A100 evaluator
+CLI wrapper that submits a grayscale kernel to the deployed Modal H100 evaluator
 and writes results.json in markdown format the agent can parse.
 
 Deploy the evaluator once before running:
@@ -34,14 +34,14 @@ BENCHMARK_CASES = [
 
 
 def format_results_markdown(res: dict, mode: str = "leaderboard") -> str:
-    gpu = res.get("gpu_name", "NVIDIA A100")
+    gpu = res.get("gpu_name", "NVIDIA H100")
     torch_ver = res.get("torch_version", "unknown")
     plat = res.get("platform", "unknown")
 
     if res["success"]:
-        status_line = "**A100 on Modal ✅ success**"
+        status_line = "**H100 on Modal ✅ success**"
     else:
-        status_line = "**A100 on Modal ❌ failure**"
+        status_line = "**H100 on Modal ❌ failure**"
 
     lines = [status_line]
 
@@ -100,7 +100,7 @@ def format_results_markdown(res: dict, mode: str = "leaderboard") -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate a grayscale kernel on Modal A100")
+    parser = argparse.ArgumentParser(description="Evaluate a grayscale kernel on Modal H100")
     parser.add_argument("submission", help="Path to submission.py")
     parser.add_argument("-o", "--output", default="results.json")
     parser.add_argument(
@@ -118,7 +118,7 @@ def main():
         print(f"Error: {args.submission} not found")
         sys.exit(1)
 
-    print(f"Submitting {args.submission} to Modal A100 ({args.mode} mode)...")
+    print(f"Submitting {args.submission} to Modal H100 ({args.mode} mode)...")
 
     evaluate_kernel = modal.Function.from_name("grayscale-kernel-eval", "evaluate_kernel")
 

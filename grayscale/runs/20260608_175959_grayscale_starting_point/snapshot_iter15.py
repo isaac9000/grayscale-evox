@@ -1,11 +1,11 @@
 # EVOLVE-BLOCK-START
 """
-Grayscale via inline CUDA kernel: clean reproduction of #10 best.
+Grayscale via inline CUDA kernel: 4-pixel float4, __launch_bounds__(256,4).
 Y = 0.2989 R + 0.5870 G + 0.1140 B
 
-Exact #10 configuration: 256 threads/block, __launch_bounds__(256,4),
-4 pixels/thread with float4 vectorized loads and __ldg hints,
-direct tensor passing (no .view or .contiguous overhead).
+Best kernel from #10, plus: cache the bound grayscale_cuda method reference
+at module level to eliminate _get_module() call + .grayscale_cuda attribute
+lookup on every custom_kernel invocation.
 """
 
 import torch
@@ -62,23 +62,24 @@ _cpp_src = r"""
 torch::Tensor grayscale_cuda(torch::Tensor rgb, torch::Tensor output);
 """
 
-_module = None
+# Cached bound method — eliminates _get_module() call + attribute lookup per invocation
+_fn = None
 
-def _get_module():
-    global _module
-    if _module is None:
-        _module = load_inline(
-            name="grayscale_inline_v18",
+def _get_fn():
+    global _fn
+    if _fn is None:
+        mod = load_inline(
+            name="grayscale_inline_v8",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],
             verbose=False,
         )
-    return _module
+        _fn = mod.grayscale_cuda
+    return _fn
 
 def custom_kernel(data):
     rgb, output = data
-    mod = _get_module()
-    mod.grayscale_cuda(rgb, output)
+    _get_fn()(rgb, output)
     return output
 # EVOLVE-BLOCK-END

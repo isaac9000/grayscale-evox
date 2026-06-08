@@ -68,7 +68,7 @@ def _get_module():
     global _module
     if _module is None:
         _module = load_inline(
-            name="grayscale_inline_v18",
+            name="grayscale_inline_v14",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],

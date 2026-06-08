@@ -1,11 +1,11 @@
 # EVOLVE-BLOCK-START
 """
-Grayscale via inline CUDA kernel: clean reproduction of #10 best.
+Grayscale via inline CUDA kernel: #10 kernel + -arch=sm_90a compile flag.
 Y = 0.2989 R + 0.5870 G + 0.1140 B
 
-Exact #10 configuration: 256 threads/block, __launch_bounds__(256,4),
-4 pixels/thread with float4 vectorized loads and __ldg hints,
-direct tensor passing (no .view or .contiguous overhead).
+Same as #10 (256 threads, __launch_bounds__(256,4), float4, __ldg).
+Adds -arch=sm_90a to target H100-specific ISA, enabling H100-exclusive
+instructions and async memory pipeline features not available on sm_90.
 """
 
 import torch
@@ -68,11 +68,12 @@ def _get_module():
     global _module
     if _module is None:
         _module = load_inline(
-            name="grayscale_inline_v18",
+            name="grayscale_inline_v13",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],
             verbose=False,
+            extra_cuda_cflags=["-arch=sm_90a"],
         )
     return _module
 

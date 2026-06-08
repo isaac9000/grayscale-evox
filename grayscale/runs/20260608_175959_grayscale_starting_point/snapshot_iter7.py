@@ -1,11 +1,11 @@
 # EVOLVE-BLOCK-START
 """
-Grayscale via inline CUDA kernel: clean reproduction of #10 best.
+Grayscale via inline CUDA kernel with CUDA Graph caching.
 Y = 0.2989 R + 0.5870 G + 0.1140 B
 
-Exact #10 configuration: 256 threads/block, __launch_bounds__(256,4),
-4 pixels/thread with float4 vectorized loads and __ldg hints,
-direct tensor passing (no .view or .contiguous overhead).
+4-pixel-per-thread float4 vectorized loads (best from exp #5).
+CUDA Graph capture for each (H,W) shape to eliminate CPU launch overhead
+at small sizes where kernel launch latency dominates.
 """
 
 import torch
@@ -14,7 +14,8 @@ from torch.utils.cpp_extension import load_inline
 _cuda_src = r"""
 #include <cuda_runtime.h>
 
-__global__ void __launch_bounds__(256, 4) grayscale_kernel(
+// Each thread processes 4 pixels using float4 vectorized loads.
+__global__ void grayscale_kernel(
     const float* __restrict__ rgb,
     float* __restrict__ out,
     int n_pixels
@@ -22,9 +23,9 @@ __global__ void __launch_bounds__(256, 4) grayscale_kernel(
     int idx = (blockIdx.x * blockDim.x + threadIdx.x) * 4;
     if (idx + 3 < n_pixels) {
         const float4* rgb4 = reinterpret_cast<const float4*>(rgb + idx * 3);
-        float4 v0 = __ldg(rgb4);
-        float4 v1 = __ldg(rgb4 + 1);
-        float4 v2 = __ldg(rgb4 + 2);
+        float4 v0 = __ldg(rgb4);     // R0 G0 B0 R1
+        float4 v1 = __ldg(rgb4 + 1); // G1 B1 R2 G2
+        float4 v2 = __ldg(rgb4 + 2); // B2 R3 G3 B3
 
         float4 result;
         result.x = 0.2989f * v0.x + 0.5870f * v0.y + 0.1140f * v0.z;
@@ -45,7 +46,7 @@ __global__ void __launch_bounds__(256, 4) grayscale_kernel(
 }
 
 torch::Tensor grayscale_cuda(torch::Tensor rgb, torch::Tensor output) {
-    int n_pixels = output.numel();
+    int n_pixels = rgb.numel() / 3;
     const int threads = 256;
     int blocks = (n_pixels / 4 + threads - 1) / threads;
     if (blocks == 0) blocks = 1;
@@ -68,7 +69,7 @@ def _get_module():
     global _module
     if _module is None:
         _module = load_inline(
-            name="grayscale_inline_v18",
+            name="grayscale_inline_v2",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],
@@ -76,9 +77,34 @@ def _get_module():
         )
     return _module
 
+# Cache: shape -> (graph, rgb_placeholder, out_placeholder)
+_graph_cache = {}
+
 def custom_kernel(data):
     rgb, output = data
+    H, W, C = rgb.shape
+    assert C == 3
+    rgb_c = rgb.contiguous()
     mod = _get_module()
-    mod.grayscale_cuda(rgb, output)
+
+    key = (H, W)
+    if key not in _graph_cache:
+        # Warmup run outside graph
+        mod.grayscale_cuda(rgb_c.view(-1), output.view(-1))
+        torch.cuda.synchronize()
+
+        # Capture into CUDA graph using static input/output buffers
+        rgb_static = rgb_c.clone()
+        out_static = output.clone()
+        g = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(g):
+            mod.grayscale_cuda(rgb_static.view(-1), out_static.view(-1))
+        _graph_cache[key] = (g, rgb_static, out_static)
+
+    g, rgb_static, out_static = _graph_cache[key]
+    # Copy live data into static buffers
+    rgb_static.copy_(rgb_c)
+    g.replay()
+    output.copy_(out_static)
     return output
 # EVOLVE-BLOCK-END

@@ -1,11 +1,13 @@
 # EVOLVE-BLOCK-START
 """
-Grayscale via inline CUDA kernel: clean reproduction of #10 best.
+Grayscale via inline CUDA kernel: 4-pixel float4 with __launch_bounds__.
 Y = 0.2989 R + 0.5870 G + 0.1140 B
 
-Exact #10 configuration: 256 threads/block, __launch_bounds__(256,4),
-4 pixels/thread with float4 vectorized loads and __ldg hints,
-direct tensor passing (no .view or .contiguous overhead).
+Based on best kernel (#5). Additions:
+- __launch_bounds__(256, 4): gives compiler explicit occupancy hint for
+  better register allocation and reduced spill on H100.
+- Eliminated rgb.contiguous() (input is guaranteed contiguous) and .view(-1)
+  (pass data pointer directly) to reduce Python-side per-call overhead.
 """
 
 import torch
@@ -13,6 +15,7 @@ from torch.utils.cpp_extension import load_inline
 
 _cuda_src = r"""
 #include <cuda_runtime.h>
+#include <stdint.h>
 
 __global__ void __launch_bounds__(256, 4) grayscale_kernel(
     const float* __restrict__ rgb,
@@ -44,22 +47,21 @@ __global__ void __launch_bounds__(256, 4) grayscale_kernel(
     }
 }
 
-torch::Tensor grayscale_cuda(torch::Tensor rgb, torch::Tensor output) {
-    int n_pixels = output.numel();
+// Accept raw integer pointers to avoid ATen tensor metadata unpacking overhead
+void grayscale_cuda(int64_t rgb_ptr, int64_t out_ptr, int n_pixels) {
     const int threads = 256;
     int blocks = (n_pixels / 4 + threads - 1) / threads;
     if (blocks == 0) blocks = 1;
     grayscale_kernel<<<blocks, threads>>>(
-        rgb.data_ptr<float>(),
-        output.data_ptr<float>(),
+        reinterpret_cast<const float*>(rgb_ptr),
+        reinterpret_cast<float*>(out_ptr),
         n_pixels
     );
-    return output;
 }
 """
 
 _cpp_src = r"""
-torch::Tensor grayscale_cuda(torch::Tensor rgb, torch::Tensor output);
+void grayscale_cuda(int64_t rgb_ptr, int64_t out_ptr, int n_pixels);
 """
 
 _module = None
@@ -68,7 +70,7 @@ def _get_module():
     global _module
     if _module is None:
         _module = load_inline(
-            name="grayscale_inline_v18",
+            name="grayscale_inline_v6",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],
@@ -79,6 +81,7 @@ def _get_module():
 def custom_kernel(data):
     rgb, output = data
     mod = _get_module()
-    mod.grayscale_cuda(rgb, output)
+    # Pass raw integer pointers — avoids ATen tensor metadata unpacking
+    mod.grayscale_cuda(rgb.data_ptr(), output.data_ptr(), output.numel())
     return output
 # EVOLVE-BLOCK-END

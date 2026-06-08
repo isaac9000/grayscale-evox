@@ -1,11 +1,13 @@
 # EVOLVE-BLOCK-START
 """
-Grayscale via inline CUDA kernel: clean reproduction of #10 best.
+Grayscale via inline CUDA kernel: 128 threads/block, __launch_bounds__(128,8).
 Y = 0.2989 R + 0.5870 G + 0.1140 B
 
-Exact #10 configuration: 256 threads/block, __launch_bounds__(256,4),
-4 pixels/thread with float4 vectorized loads and __ldg hints,
-direct tensor passing (no .view or .contiguous overhead).
+Based on #10 best kernel. Change: 128 threads/block instead of 256.
+- Doubles the number of blocks for any image size
+- H100 can fit 16 blocks/SM at 128 threads vs 8 at 256 → better latency hiding
+- __launch_bounds__(128, 8) hints compiler for 100% thread occupancy
+- Everything else identical: float4 4-pixel/thread, __ldg, direct tensor passing
 """
 
 import torch
@@ -14,7 +16,7 @@ from torch.utils.cpp_extension import load_inline
 _cuda_src = r"""
 #include <cuda_runtime.h>
 
-__global__ void __launch_bounds__(256, 4) grayscale_kernel(
+__global__ void __launch_bounds__(128, 8) grayscale_kernel(
     const float* __restrict__ rgb,
     float* __restrict__ out,
     int n_pixels
@@ -46,7 +48,7 @@ __global__ void __launch_bounds__(256, 4) grayscale_kernel(
 
 torch::Tensor grayscale_cuda(torch::Tensor rgb, torch::Tensor output) {
     int n_pixels = output.numel();
-    const int threads = 256;
+    const int threads = 128;
     int blocks = (n_pixels / 4 + threads - 1) / threads;
     if (blocks == 0) blocks = 1;
     grayscale_kernel<<<blocks, threads>>>(
@@ -68,7 +70,7 @@ def _get_module():
     global _module
     if _module is None:
         _module = load_inline(
-            name="grayscale_inline_v18",
+            name="grayscale_inline_v12",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],

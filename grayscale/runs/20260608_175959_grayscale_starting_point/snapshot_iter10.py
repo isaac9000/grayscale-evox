@@ -1,11 +1,13 @@
 # EVOLVE-BLOCK-START
 """
-Grayscale via inline CUDA kernel: clean reproduction of #10 best.
+Grayscale via inline CUDA kernel: 4-pixel float4 with __launch_bounds__.
 Y = 0.2989 R + 0.5870 G + 0.1140 B
 
-Exact #10 configuration: 256 threads/block, __launch_bounds__(256,4),
-4 pixels/thread with float4 vectorized loads and __ldg hints,
-direct tensor passing (no .view or .contiguous overhead).
+Based on best kernel (#5). Additions:
+- __launch_bounds__(256, 4): gives compiler explicit occupancy hint for
+  better register allocation and reduced spill on H100.
+- Eliminated rgb.contiguous() (input is guaranteed contiguous) and .view(-1)
+  (pass data pointer directly) to reduce Python-side per-call overhead.
 """
 
 import torch
@@ -68,7 +70,7 @@ def _get_module():
     global _module
     if _module is None:
         _module = load_inline(
-            name="grayscale_inline_v18",
+            name="grayscale_inline_v4",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],
@@ -78,7 +80,9 @@ def _get_module():
 
 def custom_kernel(data):
     rgb, output = data
+    # Input is guaranteed contiguous — skip .contiguous() check
     mod = _get_module()
+    # Pass tensors directly without .view(-1) reshape
     mod.grayscale_cuda(rgb, output)
     return output
 # EVOLVE-BLOCK-END

@@ -1,11 +1,13 @@
 # EVOLVE-BLOCK-START
 """
-Grayscale via inline CUDA kernel: clean reproduction of #10 best.
+Grayscale via inline CUDA kernel: 4-pixel float4 with non-temporal stores.
 Y = 0.2989 R + 0.5870 G + 0.1140 B
 
-Exact #10 configuration: 256 threads/block, __launch_bounds__(256,4),
-4 pixels/thread with float4 vectorized loads and __ldg hints,
-direct tensor passing (no .view or .contiguous overhead).
+Best kernel (#10) + non-temporal float4 store via __stcg() for output:
+- Output buffer is write-only; non-temporal store bypasses L1/L2 cache
+  pollution, routing writes directly to L2 / HBM for large sizes.
+- __stcg = "store cache global" — bypasses L1, goes to L2
+- Keeps: __launch_bounds__(256,4), float4 loads, __ldg reads.
 """
 
 import torch
@@ -32,7 +34,8 @@ __global__ void __launch_bounds__(256, 4) grayscale_kernel(
         result.z = 0.2989f * v1.z + 0.5870f * v1.w + 0.1140f * v2.x;
         result.w = 0.2989f * v2.y + 0.5870f * v2.z + 0.1140f * v2.w;
 
-        reinterpret_cast<float4*>(out)[idx / 4] = result;
+        // Non-temporal store: bypass L1, reduce cache pollution for write-only output
+        __stcg(reinterpret_cast<float4*>(out) + idx / 4, result);
     } else {
         for (int i = idx; i < n_pixels; i++) {
             int base = i * 3;
@@ -68,7 +71,7 @@ def _get_module():
     global _module
     if _module is None:
         _module = load_inline(
-            name="grayscale_inline_v18",
+            name="grayscale_inline_v10",
             cpp_sources=_cpp_src,
             cuda_sources=_cuda_src,
             functions=["grayscale_cuda"],
