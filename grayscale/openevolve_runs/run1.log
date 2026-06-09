@@ -1,0 +1,250 @@
+2026-06-09 20:53:20,674 - INFO - Logging to grayscale/openevolve_runs/run1/logs/openevolve_20260609_205320.log
+2026-06-09 20:53:20,677 - INFO - Set random seed to 42 for reproducibility
+2026-06-09 20:53:20,696 - INFO - Initialized OpenAI LLM with model: claude-sonnet-4-6
+2026-06-09 20:53:20,699 - INFO - Initialized OpenAI LLM with model: claude-haiku-4-5-20251001
+2026-06-09 20:53:20,699 - INFO - Initialized LLM ensemble with models: claude-sonnet-4-6 (weight: 0.80), claude-haiku-4-5-20251001 (weight: 0.20)
+2026-06-09 20:53:20,704 - INFO - Initialized LLM ensemble with models: claude-sonnet-4-6 (weight: 0.80), claude-haiku-4-5-20251001 (weight: 0.20)
+2026-06-09 20:53:20,705 - INFO - Initialized prompt sampler
+2026-06-09 20:53:20,705 - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-06-09 20:53:20,705 - INFO - Initialized program database with 0 programs
+2026-06-09 20:53:20,706 - INFO - Successfully loaded evaluation function from grayscale/openevolve_evaluator.py
+2026-06-09 20:53:20,706 - WARNING - Configuration has 'cascade_evaluation: true' but evaluator 'grayscale/openevolve_evaluator.py' does not define 'evaluate_stage1' function. This will fall back to direct evaluation, making the cascade setting useless. Consider setting 'cascade_evaluation: false' or implementing cascade functions.
+2026-06-09 20:53:20,706 - INFO - Initialized evaluator with grayscale/openevolve_evaluator.py
+2026-06-09 20:53:20,706 - INFO - Initialized OpenEvolve with grayscale/starting_point.py
+2026-06-09 20:53:20,706 - INFO - Adding initial program to database
+2026-06-09 20:53:21,982 - INFO - Evaluated program f35073c5-3985-4531-b10c-3266914a9c5c in 1.28s: score=9144.2784, geomean_us=109.3580
+2026-06-09 20:53:21,982 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-06-09 20:53:21,982 - WARNING - ⚠️  No 'combined_score' metric found in evaluation results. Using average of all numeric metrics (4626.8182) for evolution guidance. For better evolution results, please modify your evaluator to return a 'combined_score' metric that properly weights different aspects of program performance.
+2026-06-09 20:53:21,983 - INFO - Initialized process parallel controller with 1 workers
+2026-06-09 20:53:21,983 - INFO - Set max None tasks per child
+2026-06-09 20:53:21,983 - INFO - Started process pool with 1 processes
+2026-06-09 20:53:21,983 - INFO - Using island-based evolution with 2 islands
+2026-06-09 20:53:21,983 - INFO - Island Status:
+2026-06-09 20:53:21,983 - INFO -  * Island 0: 1 programs, best=4626.8182, avg=4626.8182, diversity=0.00, gen=0 (best: f35073c5-3985-4531-b10c-3266914a9c5c)
+2026-06-09 20:53:21,983 - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-06-09 20:53:21,983 - INFO - Starting process-based evolution from iteration 1 for 25 iterations (total: 26)
+2026-06-09 20:53:21,986 - INFO - Early stopping disabled
+2026-06-09 20:53:21,993 - INFO - Initialized LLM ensemble with models: claude-sonnet-4-6 (weight: 0.80), claude-haiku-4-5-20251001 (weight: 0.20)
+2026-06-09 20:53:21,999 - INFO - Initialized LLM ensemble with models: claude-sonnet-4-6 (weight: 0.80), claude-haiku-4-5-20251001 (weight: 0.20)
+2026-06-09 20:53:21,999 - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-06-09 20:53:22,000 - INFO - Successfully loaded evaluation function from grayscale/openevolve_evaluator.py
+2026-06-09 20:53:22,000 - WARNING - Configuration has 'cascade_evaluation: true' but evaluator 'grayscale/openevolve_evaluator.py' does not define 'evaluate_stage1' function. This will fall back to direct evaluation, making the cascade setting useless. Consider setting 'cascade_evaluation: false' or implementing cascade functions.
+2026-06-09 20:53:22,000 - INFO - Initialized evaluator with grayscale/openevolve_evaluator.py
+2026-06-09 20:53:22,000 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:53:34,662 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:53:36,017 - INFO - Evaluated program cf051003-b069-4618-8177-ab9e42d6c491 in 1.35s: score=9101.0858, geomean_us=109.8770
+2026-06-09 20:53:36,018 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:53:36,027 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 5}
+2026-06-09 20:53:36,027 - INFO - Iteration 1: Program cf051003-b069-4618-8177-ab9e42d6c491 (parent: f35073c5-3985-4531-b10c-3266914a9c5c) completed in 14.02s
+2026-06-09 20:53:36,027 - INFO - Metrics: score=9101.0858, geomean_us=109.8770
+2026-06-09 20:53:36,027 - WARNING - ⚠️  No 'combined_score' metric found in evaluation results. Using average of all numeric metrics (4605.4814) for evolution guidance. For better evolution results, please modify your evaluator to return a 'combined_score' metric that properly weights different aspects of program performance.
+2026-06-09 20:53:46,198 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:53:47,521 - INFO - Evaluated program cf65e6a7-5c85-4458-8439-1a30791e416c in 1.32s: score=6503.5151, geomean_us=153.7630
+2026-06-09 20:53:47,522 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:53:47,528 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 5, 'diversity': 0}
+2026-06-09 20:53:47,528 - INFO - Iteration 2: Program cf65e6a7-5c85-4458-8439-1a30791e416c (parent: f35073c5-3985-4531-b10c-3266914a9c5c) completed in 11.50s
+2026-06-09 20:53:47,528 - INFO - Metrics: score=6503.5151, geomean_us=153.7630
+2026-06-09 20:54:08,414 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:54:13,047 - INFO - Evaluated program b8460c83-8ab3-441d-b299-6b5c7fee077b in 4.63s: score=9301.5468, geomean_us=107.5090
+2026-06-09 20:54:13,047 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:54:13,051 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 0, 'diversity': 9}
+2026-06-09 20:54:13,051 - INFO - New best program b8460c83-8ab3-441d-b299-6b5c7fee077b replaces f35073c5-3985-4531-b10c-3266914a9c5c
+2026-06-09 20:54:13,052 - INFO - Iteration 3: Program b8460c83-8ab3-441d-b299-6b5c7fee077b (parent: cf051003-b069-4618-8177-ab9e42d6c491) completed in 25.53s
+2026-06-09 20:54:13,052 - INFO - Metrics: score=9301.5468, geomean_us=107.5090
+2026-06-09 20:54:13,052 - INFO - 🌟 New best solution found at iteration 3: b8460c83-8ab3-441d-b299-6b5c7fee077b
+2026-06-09 20:54:24,005 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:54:25,727 - INFO - Evaluated program d42fb263-16c4-4ac3-b1cc-132833e6d2d9 in 1.72s: score=8965.7151, geomean_us=111.5360
+2026-06-09 20:54:25,727 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:54:25,730 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 2}
+2026-06-09 20:54:25,730 - INFO - Iteration 4: Program d42fb263-16c4-4ac3-b1cc-132833e6d2d9 (parent: cf65e6a7-5c85-4458-8439-1a30791e416c) completed in 12.68s
+2026-06-09 20:54:25,730 - INFO - Metrics: score=8965.7151, geomean_us=111.5360
+2026-06-09 20:54:42,013 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:54:43,276 - INFO - Evaluated program 8aa59bda-fce6-4e25-97a8-b32153570e35 in 1.26s: score=9517.4645, geomean_us=105.0700
+2026-06-09 20:54:43,277 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:54:43,279 - INFO - Island 0 MAP-Elites cell improved: {'complexity': 0, 'diversity': 9} (fitness: 4704.528 -> 4811.267)
+2026-06-09 20:54:43,279 - INFO - New best program 8aa59bda-fce6-4e25-97a8-b32153570e35 replaces b8460c83-8ab3-441d-b299-6b5c7fee077b
+2026-06-09 20:54:43,279 - INFO - Iteration 5: Program 8aa59bda-fce6-4e25-97a8-b32153570e35 (parent: cf051003-b069-4618-8177-ab9e42d6c491) completed in 17.55s
+2026-06-09 20:54:43,279 - INFO - Metrics: score=9517.4645, geomean_us=105.0700
+2026-06-09 20:54:43,279 - INFO - 🌟 New best solution found at iteration 5: 8aa59bda-fce6-4e25-97a8-b32153570e35
+2026-06-09 20:54:43,279 - INFO - Checkpoint interval reached at iteration 5
+2026-06-09 20:54:43,279 - INFO - Island Status:
+2026-06-09 20:54:43,279 - INFO -  * Island 0: 3 programs, best=4811.2673, avg=4681.1890, diversity=148.73, gen=3 (best: 8aa59bda-fce6-4e25-97a8-b32153570e35)
+2026-06-09 20:54:43,279 - INFO -    Island 1: 2 programs, best=4538.6256, avg=3933.6323, diversity=34.60, gen=2 (best: d42fb263-16c4-4ac3-b1cc-132833e6d2d9)
+2026-06-09 20:54:43,280 - INFO - Saved database with 6 programs to grayscale/openevolve_runs/run1/checkpoints/checkpoint_5
+2026-06-09 20:54:43,281 - INFO - Saved best program at checkpoint 5 with metrics: score=9517.4645, geomean_us=105.0700
+2026-06-09 20:54:43,281 - INFO - Saved checkpoint at iteration 5 to grayscale/openevolve_runs/run1/checkpoints/checkpoint_5
+2026-06-09 20:54:58,632 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:54:59,906 - INFO - Evaluated program b937ea04-e5da-4991-a03e-a70fc4e36450 in 1.27s: score=9153.2343, geomean_us=109.2510
+2026-06-09 20:54:59,907 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:54:59,911 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 1, 'diversity': 6}
+2026-06-09 20:54:59,912 - INFO - Iteration 6: Program b937ea04-e5da-4991-a03e-a70fc4e36450 (parent: d42fb263-16c4-4ac3-b1cc-132833e6d2d9) completed in 16.63s
+2026-06-09 20:54:59,912 - INFO - Metrics: score=9153.2343, geomean_us=109.2510
+2026-06-09 20:55:14,082 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:55:15,351 - INFO - Evaluated program 3955fc39-fc0d-4b60-97d2-73d4a4521349 in 1.27s: score=9131.0025, geomean_us=109.5170
+2026-06-09 20:55:15,352 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:55:15,353 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 0, 'diversity': 7}
+2026-06-09 20:55:15,353 - INFO - Iteration 7: Program 3955fc39-fc0d-4b60-97d2-73d4a4521349 (parent: f35073c5-3985-4531-b10c-3266914a9c5c) completed in 15.44s
+2026-06-09 20:55:15,353 - INFO - Metrics: score=9131.0025, geomean_us=109.5170
+2026-06-09 20:55:23,591 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:55:24,938 - INFO - Evaluated program 7dca6f99-3b65-45a6-9659-e984f49323d7 in 1.35s: score=9069.3899, geomean_us=110.2610
+2026-06-09 20:55:24,939 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:55:24,943 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 4, 'diversity': 2}
+2026-06-09 20:55:24,943 - INFO - Iteration 8: Program 7dca6f99-3b65-45a6-9659-e984f49323d7 (parent: d42fb263-16c4-4ac3-b1cc-132833e6d2d9) completed in 9.59s
+2026-06-09 20:55:24,943 - INFO - Metrics: score=9069.3899, geomean_us=110.2610
+2026-06-09 20:55:38,856 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:55:40,124 - INFO - Evaluated program 00173150-e6a1-4adf-b7ce-f38f0f007160 in 1.27s: score=9449.2951, geomean_us=105.8280
+2026-06-09 20:55:40,125 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:55:40,127 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 0, 'diversity': 3}
+2026-06-09 20:55:40,127 - INFO - Iteration 9: Program 00173150-e6a1-4adf-b7ce-f38f0f007160 (parent: 3955fc39-fc0d-4b60-97d2-73d4a4521349) completed in 15.19s
+2026-06-09 20:55:40,127 - INFO - Metrics: score=9449.2951, geomean_us=105.8280
+2026-06-09 20:55:53,744 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:55:54,992 - INFO - Evaluated program cba9a290-2b53-430b-9483-e32eebb988b2 in 1.25s: score=9118.7628, geomean_us=109.6640
+2026-06-09 20:55:54,992 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:55:54,999 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 0, 'diversity': 9}
+2026-06-09 20:55:54,999 - INFO - Iteration 10: Program cba9a290-2b53-430b-9483-e32eebb988b2 (parent: 7dca6f99-3b65-45a6-9659-e984f49323d7) completed in 14.87s
+2026-06-09 20:55:54,999 - INFO - Metrics: score=9118.7628, geomean_us=109.6640
+2026-06-09 20:55:54,999 - INFO - Checkpoint interval reached at iteration 10
+2026-06-09 20:55:55,000 - INFO - Island Status:
+2026-06-09 20:55:55,000 - INFO -  * Island 0: 5 programs, best=4811.2673, avg=4688.2776, diversity=101.50, gen=5 (best: 8aa59bda-fce6-4e25-97a8-b32153570e35)
+2026-06-09 20:55:55,000 - INFO -    Island 1: 5 programs, best=4631.2426, avg=4340.5092, diversity=101.17, gen=5 (best: b937ea04-e5da-4991-a03e-a70fc4e36450)
+2026-06-09 20:55:55,001 - INFO - Saved database with 11 programs to grayscale/openevolve_runs/run1/checkpoints/checkpoint_10
+2026-06-09 20:55:55,002 - INFO - Saved best program at checkpoint 10 with metrics: score=9517.4645, geomean_us=105.0700
+2026-06-09 20:55:55,002 - INFO - Saved checkpoint at iteration 10 to grayscale/openevolve_runs/run1/checkpoints/checkpoint_10
+2026-06-09 20:56:05,678 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:56:06,937 - INFO - Evaluated program 515223b2-82d4-4c3c-995d-d2d8402d0fa7 in 1.26s: score=9581.0219, geomean_us=104.3730
+2026-06-09 20:56:06,938 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:56:06,940 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 0, 'diversity': 2}
+2026-06-09 20:56:06,940 - INFO - New best program 515223b2-82d4-4c3c-995d-d2d8402d0fa7 replaces 8aa59bda-fce6-4e25-97a8-b32153570e35
+2026-06-09 20:56:06,940 - INFO - Iteration 11: Program 515223b2-82d4-4c3c-995d-d2d8402d0fa7 (parent: 00173150-e6a1-4adf-b7ce-f38f0f007160) completed in 11.94s
+2026-06-09 20:56:06,940 - INFO - Metrics: score=9581.0219, geomean_us=104.3730
+2026-06-09 20:56:06,940 - INFO - 🌟 New best solution found at iteration 11: 515223b2-82d4-4c3c-995d-d2d8402d0fa7
+2026-06-09 20:56:24,011 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:56:25,574 - INFO - Evaluated program 7a430697-c4a4-4d8e-90b5-68c5235b7c8b in 1.56s: score=9412.6506, geomean_us=106.2400
+2026-06-09 20:56:25,575 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:56:25,581 - INFO - Island 1 MAP-Elites cell improved: {'complexity': 0, 'diversity': 9} (fitness: 4614.213 -> 4759.445)
+2026-06-09 20:56:25,581 - INFO - Iteration 12: Program 7a430697-c4a4-4d8e-90b5-68c5235b7c8b (parent: b937ea04-e5da-4991-a03e-a70fc4e36450) completed in 18.64s
+2026-06-09 20:56:25,581 - INFO - Metrics: score=9412.6506, geomean_us=106.2400
+2026-06-09 20:56:37,137 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:56:38,386 - INFO - Evaluated program 837cd738-b104-44c4-b6bd-cb8e13f4d314 in 1.25s: score=9435.6536, geomean_us=105.9810
+2026-06-09 20:56:38,387 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:56:38,393 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 3, 'diversity': 1}
+2026-06-09 20:56:38,393 - INFO - Iteration 13: Program 837cd738-b104-44c4-b6bd-cb8e13f4d314 (parent: 3955fc39-fc0d-4b60-97d2-73d4a4521349) completed in 12.81s
+2026-06-09 20:56:38,393 - INFO - Metrics: score=9435.6536, geomean_us=105.9810
+2026-06-09 20:56:55,915 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:56:57,195 - INFO - Evaluated program 96481833-e633-4ff7-a428-3bded6ee6795 in 1.28s: score=5628.4122, geomean_us=177.6700
+2026-06-09 20:56:57,196 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:56:57,199 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 0, 'diversity': 8}
+2026-06-09 20:56:57,199 - INFO - Iteration 14: Program 96481833-e633-4ff7-a428-3bded6ee6795 (parent: 7a430697-c4a4-4d8e-90b5-68c5235b7c8b) completed in 18.81s
+2026-06-09 20:56:57,199 - INFO - Metrics: score=5628.4122, geomean_us=177.6700
+2026-06-09 20:57:11,868 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:57:13,112 - INFO - Evaluated program 026920f9-d9ac-487f-9303-9f13426d6eff in 1.24s: score=9527.5298, geomean_us=104.9590
+2026-06-09 20:57:13,113 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:57:13,118 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 1, 'diversity': 1}
+2026-06-09 20:57:13,118 - INFO - Iteration 15: Program 026920f9-d9ac-487f-9303-9f13426d6eff (parent: cf051003-b069-4618-8177-ab9e42d6c491) completed in 15.92s
+2026-06-09 20:57:13,119 - INFO - Metrics: score=9527.5298, geomean_us=104.9590
+2026-06-09 20:57:13,119 - INFO - Checkpoint interval reached at iteration 15
+2026-06-09 20:57:13,119 - INFO - Island Status:
+2026-06-09 20:57:13,119 - INFO -  * Island 0: 8 programs, best=4842.6975, avg=4733.8934, diversity=10.58, gen=8 (best: 515223b2-82d4-4c3c-995d-d2d8402d0fa7)
+2026-06-09 20:57:13,119 - INFO -    Island 1: 6 programs, best=4759.4453, avg=4125.1365, diversity=183.85, gen=7 (best: 7a430697-c4a4-4d8e-90b5-68c5235b7c8b)
+2026-06-09 20:57:13,121 - INFO - Saved database with 16 programs to grayscale/openevolve_runs/run1/checkpoints/checkpoint_15
+2026-06-09 20:57:13,122 - INFO - Saved best program at checkpoint 15 with metrics: score=9581.0219, geomean_us=104.3730
+2026-06-09 20:57:13,122 - INFO - Saved checkpoint at iteration 15 to grayscale/openevolve_runs/run1/checkpoints/checkpoint_15
+2026-06-09 20:57:22,371 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:57:23,591 - INFO - Evaluated program 7887faf2-6f91-4e01-917a-c2dc46837593 in 1.22s: score=9274.3731, geomean_us=107.8240
+2026-06-09 20:57:23,593 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:57:23,597 - INFO - Iteration 16: Program 7887faf2-6f91-4e01-917a-c2dc46837593 (parent: b937ea04-e5da-4991-a03e-a70fc4e36450) completed in 10.48s
+2026-06-09 20:57:23,597 - INFO - Metrics: score=9274.3731, geomean_us=107.8240
+2026-06-09 20:57:35,067 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:57:36,433 - INFO - Evaluated program 66c6f45e-3a2d-4442-947e-441597973241 in 1.36s: score=5759.8046, geomean_us=173.6170
+2026-06-09 20:57:36,434 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:57:36,436 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 8, 'diversity': 5}
+2026-06-09 20:57:36,436 - INFO - Iteration 17: Program 66c6f45e-3a2d-4442-947e-441597973241 (parent: 026920f9-d9ac-487f-9303-9f13426d6eff) completed in 12.84s
+2026-06-09 20:57:36,436 - INFO - Metrics: score=5759.8046, geomean_us=173.6170
+2026-06-09 20:57:54,342 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:57:55,480 - INFO - Evaluated program cae9fe20-dbf6-4db0-86cc-35edaef0b7f7 in 1.14s: score=0.0000, error=run_eval exited 1
+2026-06-09 20:57:55,481 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:57:55,483 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 0, 'diversity': 7}
+2026-06-09 20:57:55,483 - INFO - Iteration 18: Program cae9fe20-dbf6-4db0-86cc-35edaef0b7f7 (parent: 7a430697-c4a4-4d8e-90b5-68c5235b7c8b) completed in 19.05s
+2026-06-09 20:57:55,483 - INFO - Metrics: score=0.0000, error=run_eval exited 1
+2026-06-09 20:58:04,949 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:58:12,540 - INFO - Evaluated program 1dbcf7d5-f2d6-4ee5-97df-7b6def2ff717 in 7.59s: score=9175.7430, geomean_us=108.9830
+2026-06-09 20:58:12,541 - INFO - Sampled model: claude-haiku-4-5-20251001
+2026-06-09 20:58:12,550 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 2, 'diversity': 2}
+2026-06-09 20:58:12,550 - INFO - Island 0 MAP-Elites coverage reached 10.0% (10/100 cells)
+2026-06-09 20:58:12,550 - INFO - Iteration 19: Program 1dbcf7d5-f2d6-4ee5-97df-7b6def2ff717 (parent: 8aa59bda-fce6-4e25-97a8-b32153570e35) completed in 17.06s
+2026-06-09 20:58:12,550 - INFO - Metrics: score=9175.7430, geomean_us=108.9830
+2026-06-09 20:58:21,974 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:58:23,271 - INFO - Evaluated program 3bb63ae7-87a1-414e-b721-06e39c96ae51 in 1.30s: score=9070.1302, geomean_us=110.2520
+2026-06-09 20:58:23,272 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:58:23,278 - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 2, 'diversity': 6}
+2026-06-09 20:58:23,278 - INFO - Population size (21) exceeds limit (20), removing 1 programs
+2026-06-09 20:58:23,278 - INFO - Population size after cleanup: 20
+2026-06-09 20:58:23,278 - INFO - Iteration 20: Program 3bb63ae7-87a1-414e-b721-06e39c96ae51 (parent: 7887faf2-6f91-4e01-917a-c2dc46837593) completed in 10.73s
+2026-06-09 20:58:23,279 - INFO - Metrics: score=9070.1302, geomean_us=110.2520
+2026-06-09 20:58:23,279 - INFO - Checkpoint interval reached at iteration 20
+2026-06-09 20:58:23,279 - INFO - Island Status:
+2026-06-09 20:58:23,279 - INFO -  * Island 0: 10 programs, best=4842.6975, avg=4548.0221, diversity=18.30, gen=10 (best: 515223b2-82d4-4c3c-995d-d2d8402d0fa7)
+2026-06-09 20:58:23,279 - INFO -    Island 1: 8 programs, best=4759.4453, avg=4254.0136, diversity=98.98, gen=10 (best: 7a430697-c4a4-4d8e-90b5-68c5235b7c8b)
+2026-06-09 20:58:23,282 - INFO - Saved database with 20 programs to grayscale/openevolve_runs/run1/checkpoints/checkpoint_20
+2026-06-09 20:58:23,282 - INFO - Saved best program at checkpoint 20 with metrics: score=9581.0219, geomean_us=104.3730
+2026-06-09 20:58:23,282 - INFO - Saved checkpoint at iteration 20 to grayscale/openevolve_runs/run1/checkpoints/checkpoint_20
+2026-06-09 20:58:38,856 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:58:40,107 - INFO - Evaluated program 271b3e36-f9f6-40b2-95bd-5765a16c6ffc in 1.25s: score=9386.1460, geomean_us=106.5400
+2026-06-09 20:58:40,108 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:58:40,110 - INFO - Population size (21) exceeds limit (20), removing 1 programs
+2026-06-09 20:58:40,110 - INFO - Population size after cleanup: 20
+2026-06-09 20:58:40,110 - INFO - Iteration 21: Program 271b3e36-f9f6-40b2-95bd-5765a16c6ffc (parent: f35073c5-3985-4531-b10c-3266914a9c5c) completed in 16.84s
+2026-06-09 20:58:40,110 - INFO - Metrics: score=9386.1460, geomean_us=106.5400
+2026-06-09 20:59:02,553 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:59:03,841 - INFO - Evaluated program 109098a2-d188-4518-b0f7-5bc556e51baa in 1.29s: score=9262.2609, geomean_us=107.9650
+2026-06-09 20:59:03,842 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:59:03,852 - INFO - Population size (21) exceeds limit (20), removing 1 programs
+2026-06-09 20:59:03,852 - INFO - Population size after cleanup: 20
+2026-06-09 20:59:03,852 - INFO - Iteration 22: Program 109098a2-d188-4518-b0f7-5bc556e51baa (parent: 7887faf2-6f91-4e01-917a-c2dc46837593) completed in 23.73s
+2026-06-09 20:59:03,852 - INFO - Metrics: score=9262.2609, geomean_us=107.9650
+2026-06-09 20:59:28,308 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 20:59:29,615 - INFO - Evaluated program bc762066-10fb-402f-9d00-b9c5e4b74852 in 1.31s: score=9195.9942, geomean_us=108.7430
+2026-06-09 20:59:29,616 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 20:59:29,618 - INFO - Island 0 MAP-Elites cell improved: {'complexity': 2, 'diversity': 2} (fitness: 4642.363 -> 4652.369)
+2026-06-09 20:59:29,618 - INFO - Population size (21) exceeds limit (20), removing 1 programs
+2026-06-09 20:59:29,618 - INFO - Population size after cleanup: 20
+2026-06-09 20:59:29,618 - INFO - Iteration 23: Program bc762066-10fb-402f-9d00-b9c5e4b74852 (parent: 515223b2-82d4-4c3c-995d-d2d8402d0fa7) completed in 25.77s
+2026-06-09 20:59:29,618 - INFO - Metrics: score=9195.9942, geomean_us=108.7430
+2026-06-09 21:00:26,000 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 21:00:27,250 - INFO - Evaluated program fcde288d-c395-4226-9fc8-50ecef5f2060 in 1.25s: score=9307.4338, geomean_us=107.4410
+2026-06-09 21:00:27,251 - INFO - Sampled model: claude-sonnet-4-6
+2026-06-09 21:00:27,252 - INFO - Population size (21) exceeds limit (20), removing 1 programs
+2026-06-09 21:00:27,253 - INFO - Population size after cleanup: 20
+2026-06-09 21:00:27,253 - INFO - Iteration 24: Program fcde288d-c395-4226-9fc8-50ecef5f2060 (parent: 109098a2-d188-4518-b0f7-5bc556e51baa) completed in 57.63s
+2026-06-09 21:00:27,253 - INFO - Metrics: score=9307.4338, geomean_us=107.4410
+2026-06-09 21:00:39,484 - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-09 21:00:40,789 - INFO - Evaluated program e0cf8c08-6037-4d06-b21c-60c9ac96b8fb in 1.30s: score=9352.7871, geomean_us=106.9200
+2026-06-09 21:00:40,792 - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 1, 'diversity': 2}
+2026-06-09 21:00:40,793 - INFO - Island 0 MAP-Elites coverage reached 10.0% (10/100 cells)
+2026-06-09 21:00:40,793 - INFO - Population size (21) exceeds limit (20), removing 1 programs
+2026-06-09 21:00:40,793 - INFO - Population size after cleanup: 20
+2026-06-09 21:00:40,793 - INFO - Iteration 25: Program e0cf8c08-6037-4d06-b21c-60c9ac96b8fb (parent: f35073c5-3985-4531-b10c-3266914a9c5c) completed in 13.54s
+2026-06-09 21:00:40,793 - INFO - Metrics: score=9352.7871, geomean_us=106.9200
+2026-06-09 21:00:40,793 - INFO - Checkpoint interval reached at iteration 25
+2026-06-09 21:00:40,793 - INFO - Island Status:
+2026-06-09 21:00:40,793 - INFO -  * Island 0: 11 programs, best=4842.6975, avg=4727.2466, diversity=8.57, gen=13 (best: 515223b2-82d4-4c3c-995d-d2d8402d0fa7)
+2026-06-09 21:00:40,793 - INFO -    Island 1: 6 programs, best=4759.4453, avg=4677.4213, diversity=53.10, gen=12 (best: 7a430697-c4a4-4d8e-90b5-68c5235b7c8b)
+2026-06-09 21:00:40,796 - INFO - Saved database with 20 programs to grayscale/openevolve_runs/run1/checkpoints/checkpoint_25
+2026-06-09 21:00:40,796 - INFO - Saved best program at checkpoint 25 with metrics: score=9581.0219, geomean_us=104.3730
+2026-06-09 21:00:40,796 - INFO - Saved checkpoint at iteration 25 to grayscale/openevolve_runs/run1/checkpoints/checkpoint_25
+2026-06-09 21:00:40,796 - INFO - ✅ Evolution completed - Maximum iterations reached
+2026-06-09 21:00:40,801 - INFO - Saved database with 20 programs to grayscale/openevolve_runs/run1/checkpoints/checkpoint_25
+2026-06-09 21:00:40,802 - INFO - Saved best program at checkpoint 25 with metrics: score=9581.0219, geomean_us=104.3730
+2026-06-09 21:00:40,802 - INFO - Saved checkpoint at iteration 25 to grayscale/openevolve_runs/run1/checkpoints/checkpoint_25
+2026-06-09 21:00:40,806 - INFO - Stopped process pool
+2026-06-09 21:00:40,806 - INFO - Using tracked best program: 515223b2-82d4-4c3c-995d-d2d8402d0fa7
+2026-06-09 21:00:40,806 - INFO - Evolution complete. Best program has metrics: score=9581.0219, geomean_us=104.3730
+2026-06-09 21:00:40,806 - INFO - Saved best program to grayscale/openevolve_runs/run1/best/best_program.py with program info to grayscale/openevolve_runs/run1/best/best_program_info.json
+
+Evolution complete!
+Best program metrics:
+  score: 9581.0219
+  geomean_us: 104.3730
+
+Latest checkpoint saved at: grayscale/openevolve_runs/run1/checkpoints/checkpoint_25
+To resume, use: --checkpoint grayscale/openevolve_runs/run1/checkpoints/checkpoint_25
