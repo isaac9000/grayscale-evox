@@ -1,0 +1,265 @@
+2026-06-12 21:23:59,124 - skydiscover.search.utils.logging_utils - INFO - Logging to grayscale/skydiscover_runs/run1/logs/evox_20260612_212359.log
+2026-06-12 21:24:02,271 - skydiscover.search.main_controller - INFO - Set random seed to 42 for reproducibility
+2026-06-12 21:24:02,349 - skydiscover.search.main_controller - INFO - Initialized discovery process with search strategy = evox and initial program = grayscale/starting_point.py
+2026-06-12 21:24:04,396 - skydiscover.llm - INFO - Initialized Anthropic LLM with model: claude-sonnet-4-6
+2026-06-12 21:24:04,401 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-sonnet-4-6 (weight: 1.00)
+2026-06-12 21:24:04,437 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-sonnet-4-6 (weight: 1.00)
+2026-06-12 21:24:04,460 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-sonnet-4-6 (weight: 1.00)
+2026-06-12 21:24:04,639 - skydiscover.prompt.default.prompt - INFO - Initialized default context builder
+2026-06-12 21:24:04,732 - skydiscover.prompt.default.prompt - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-06-12 21:24:04,753 - skydiscover.evaluation.evaluator - INFO - Initialized evaluator with grayscale/skydiscover_evaluator.py
+2026-06-12 21:24:04,755 - skydiscover.search.default_discovery_manager - INFO - DiscoveryManager initialized: num_inspirations=4
+2026-06-12 21:24:04,817 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-sonnet-4-6 (weight: 1.00)
+2026-06-12 21:24:04,840 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-sonnet-4-6 (weight: 1.00)
+2026-06-12 21:24:04,865 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-sonnet-4-6 (weight: 1.00)
+2026-06-12 21:24:05,070 - skydiscover.prompt.default.prompt - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-06-12 21:24:05,095 - skydiscover.evaluation.evaluator - INFO - Initialized evaluator with /workspace/grayscale-openevolve/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/search_strategy_evaluator.py
+2026-06-12 21:24:05,097 - skydiscover.search.default_discovery_manager - INFO - DiscoveryManager initialized: num_inspirations=4
+2026-06-12 21:24:05,099 - skydiscover.search.evox.coevolve_manager - INFO - ======================================================================
+2026-06-12 21:24:05,100 - skydiscover.search.evox.coevolve_manager - INFO - [EVOX CO-EVOLUTION SETUP]
+2026-06-12 21:24:05,110 - skydiscover.search.evox.coevolve_manager - INFO - ----------------------------------------------------------------------
+2026-06-12 21:24:05,112 - skydiscover.search.evox.coevolve_manager - INFO -   [SOLUTION EVOLUTION]
+2026-06-12 21:24:05,114 - skydiscover.search.evox.coevolve_manager - INFO -     Initial search strategy file : /workspace/grayscale-openevolve/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/initial_search_strategy.py
+2026-06-12 21:24:05,115 - skydiscover.search.evox.coevolve_manager - INFO -     Solution database class      : EvolvedProgramDatabase
+2026-06-12 21:24:05,118 - skydiscover.search.evox.coevolve_manager - INFO -   [META EVOLUTION OF SEARCH STRATEGY]
+2026-06-12 21:24:05,119 - skydiscover.search.evox.coevolve_manager - INFO -     Search strategy database class: TopKDatabase
+2026-06-12 21:24:05,121 - skydiscover.search.evox.coevolve_manager - INFO -     Search strategy evaluator     : /workspace/grayscale-openevolve/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/search_strategy_evaluator.py
+2026-06-12 21:24:05,123 - skydiscover.search.evox.coevolve_manager - INFO -     Search strategy config        : /workspace/grayscale-openevolve/.venv/lib/python3.11/site-packages/skydiscover/search/evox/config/search.yaml
+2026-06-12 21:24:05,125 - skydiscover.search.evox.coevolve_manager - INFO - ======================================================================
+2026-06-12 21:24:05,133 - skydiscover.search.main_controller - INFO - Adding initial program to database
+2026-06-12 21:24:05,134 - root - INFO - Evaluating program 5093bc66-1878-4376-a797-ff0d5cd75b1e
+2026-06-12 21:24:13,650 - skydiscover.evaluation.evaluator - INFO - Evaluated program 5093bc66-1878-4376-a797-ff0d5cd75b1e in 8.52s: combined_score=9744.4043, geomean_us=102.6230, pass_rate=1.0000
+2026-06-12 21:24:13,653 - skydiscover.search.route - INFO - Using search strategy from: /workspace/grayscale-openevolve/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/initial_search_strategy.py
+2026-06-12 21:24:13,669 - skydiscover.search.base_database - INFO - Database has 1 programs, best program score is 9744.404276
+2026-06-12 21:24:13,671 - skydiscover.search.evox.coevolve_manager - INFO - Switch if 2 iterations of stagnation detected
+2026-06-12 21:24:13,693 - skydiscover.search.evox.coevolve_manager - INFO - Label generation: using guide_model = [claude-sonnet-4-6]
+2026-06-12 21:24:56,720 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:24:56,762 - skydiscover.search.evox.coevolve_manager - INFO - Generated variation operator labels (3179/2645 chars)
+2026-06-12 21:25:19,083 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:25:19,089 - root - INFO - Evaluating program c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe
+2026-06-12 21:25:25,195 - skydiscover.evaluation.evaluator - INFO - Evaluated program c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe in 6.11s: combined_score=9784.1614, geomean_us=102.2060, pass_rate=1.0000
+2026-06-12 21:25:25,198 - skydiscover.search.default_discovery_manager - INFO - Iteration 1: Program c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe (parent: 5093bc66-1878-4376-a797-ff0d5cd75b1e) completed in 28.35s
+2026-06-12 21:25:25,199 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=9784.1614, geomean_us=102.2060, pass_rate=1.0000
+2026-06-12 21:25:25,201 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 1
+2026-06-12 21:25:53,879 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:25:53,886 - root - INFO - Evaluating program 45b4fd93-8945-49f2-b259-670fb62a17f8
+2026-06-12 21:26:03,113 - skydiscover.evaluation.evaluator - INFO - Evaluated program 45b4fd93-8945-49f2-b259-670fb62a17f8 in 9.23s: combined_score=9989.4112, geomean_us=100.1060, pass_rate=1.0000
+2026-06-12 21:26:03,116 - skydiscover.search.default_discovery_manager - INFO - Iteration 2: Program 45b4fd93-8945-49f2-b259-670fb62a17f8 (parent: c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe) completed in 37.91s
+2026-06-12 21:26:03,117 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=9989.4112, geomean_us=100.1060, pass_rate=1.0000
+2026-06-12 21:26:03,119 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 2
+2026-06-12 21:26:18,274 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:26:18,279 - root - INFO - Evaluating program e0ac92ae-7936-4fcc-a9c0-979bd44c9745
+2026-06-12 21:26:24,135 - skydiscover.evaluation.evaluator - INFO - Evaluated program e0ac92ae-7936-4fcc-a9c0-979bd44c9745 in 5.86s: combined_score=10124.8393, geomean_us=98.7670, pass_rate=1.0000
+2026-06-12 21:26:24,140 - skydiscover.search.default_discovery_manager - INFO - Iteration 3: Program e0ac92ae-7936-4fcc-a9c0-979bd44c9745 (parent: 5093bc66-1878-4376-a797-ff0d5cd75b1e) completed in 21.02s
+2026-06-12 21:26:24,141 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10124.8393, geomean_us=98.7670, pass_rate=1.0000
+2026-06-12 21:26:24,143 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 3
+2026-06-12 21:26:45,423 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:26:45,427 - root - INFO - Evaluating program d042fce9-fea9-4b8a-bc4d-2910121d2e0e
+2026-06-12 21:26:51,203 - skydiscover.evaluation.evaluator - INFO - Evaluated program d042fce9-fea9-4b8a-bc4d-2910121d2e0e in 5.78s: combined_score=9715.8125, geomean_us=102.9250, pass_rate=1.0000
+2026-06-12 21:26:51,212 - skydiscover.search.default_discovery_manager - INFO - Iteration 4: Program d042fce9-fea9-4b8a-bc4d-2910121d2e0e (parent: e0ac92ae-7936-4fcc-a9c0-979bd44c9745) completed in 27.07s
+2026-06-12 21:26:51,214 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=9715.8125, geomean_us=102.9250, pass_rate=1.0000
+2026-06-12 21:27:15,547 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:27:15,553 - root - INFO - Evaluating program 927ec2ef-91a5-4f59-a0d9-81378e679893
+2026-06-12 21:27:21,231 - skydiscover.evaluation.evaluator - INFO - Evaluated program 927ec2ef-91a5-4f59-a0d9-81378e679893 in 5.68s: combined_score=10024.5602, geomean_us=99.7550, pass_rate=1.0000
+2026-06-12 21:27:21,234 - skydiscover.search.default_discovery_manager - INFO - Iteration 5: Program 927ec2ef-91a5-4f59-a0d9-81378e679893 (parent: c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe) completed in 30.02s
+2026-06-12 21:27:21,235 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 5
+2026-06-12 21:27:21,238 - skydiscover.search.base_database - INFO - Database has 6 programs, best program score is 10124.839268
+2026-06-12 21:27:21,418 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 6 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_5
+2026-06-12 21:27:21,451 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 5 with metrics: combined_score=10124.8393, geomean_us=98.7670, pass_rate=1.0000
+2026-06-12 21:27:21,453 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 5 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_5
+2026-06-12 21:27:21,454 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10024.5602, geomean_us=99.7550, pass_rate=1.0000
+2026-06-12 21:27:21,456 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=5)
+2026-06-12 21:27:21,458 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=2739.727380, improvement=380.434992, start=9744.404276, end=10124.839268, horizon=2
+2026-06-12 21:27:35,283 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:27:35,287 - root - INFO - Evaluating program f9edeff5-8ca0-4db5-b88b-079c2ffb9d2a
+2026-06-12 21:27:35,295 - skydiscover.evaluation.evaluator - INFO - Evaluated program f9edeff5-8ca0-4db5-b88b-079c2ffb9d2a in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:27:35,361 - skydiscover.search.evox.utils.coevolve_logging - INFO - Saved labels to grayscale/skydiscover_runs/run1/search/iteration_1/labels.yaml (3179/2645 chars)
+2026-06-12 21:27:35,363 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 1) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_1 (score pending)
+2026-06-12 21:27:35,370 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm f9edeff5-8ca0-4db5-b88b-079c2ffb9d2a (6 programs migrated)
+2026-06-12 21:27:55,966 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:27:55,972 - root - INFO - Evaluating program b0be2132-114e-4a54-8806-c3e9b4724bf6
+2026-06-12 21:28:01,819 - skydiscover.evaluation.evaluator - INFO - Evaluated program b0be2132-114e-4a54-8806-c3e9b4724bf6 in 5.85s: combined_score=10055.2031, geomean_us=99.4510, pass_rate=1.0000
+2026-06-12 21:28:01,821 - skydiscover.search.default_discovery_manager - INFO - Iteration 6: Program b0be2132-114e-4a54-8806-c3e9b4724bf6 (parent: 927ec2ef-91a5-4f59-a0d9-81378e679893) completed in 26.45s
+2026-06-12 21:28:01,823 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10055.2031, geomean_us=99.4510, pass_rate=1.0000
+2026-06-12 21:28:20,752 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:28:20,756 - root - INFO - Evaluating program bf0317eb-4f7d-42bd-b7af-ad5b4f81821b
+2026-06-12 21:28:26,853 - skydiscover.evaluation.evaluator - INFO - Evaluated program bf0317eb-4f7d-42bd-b7af-ad5b4f81821b in 6.10s: combined_score=9934.1367, geomean_us=100.6630, pass_rate=1.0000
+2026-06-12 21:28:26,875 - skydiscover.search.default_discovery_manager - INFO - Iteration 7: Program bf0317eb-4f7d-42bd-b7af-ad5b4f81821b (parent: 927ec2ef-91a5-4f59-a0d9-81378e679893) completed in 25.05s
+2026-06-12 21:28:26,877 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=9934.1367, geomean_us=100.6630, pass_rate=1.0000
+2026-06-12 21:28:26,880 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=7)
+2026-06-12 21:28:26,883 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10124.839268, end=10124.839268, horizon=2
+2026-06-12 21:28:41,231 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:28:41,235 - root - INFO - Evaluating program 98293953-40c0-4316-aec1-8a25277711cf
+2026-06-12 21:28:41,244 - skydiscover.evaluation.evaluator - INFO - Evaluated program 98293953-40c0-4316-aec1-8a25277711cf in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:28:41,353 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 2) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_2 (score pending)
+2026-06-12 21:28:41,360 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm 98293953-40c0-4316-aec1-8a25277711cf (8 programs migrated)
+2026-06-12 21:29:06,176 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:29:06,182 - root - INFO - Evaluating program 2518d513-60ab-480a-8784-92f49429a762
+2026-06-12 21:29:15,885 - skydiscover.evaluation.evaluator - INFO - Evaluated program 2518d513-60ab-480a-8784-92f49429a762 in 9.70s: combined_score=10092.9561, geomean_us=99.0790, pass_rate=1.0000
+2026-06-12 21:29:15,891 - skydiscover.search.default_discovery_manager - INFO - Iteration 8: Program 2518d513-60ab-480a-8784-92f49429a762 (parent: c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe) completed in 34.53s
+2026-06-12 21:29:15,893 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10092.9561, geomean_us=99.0790, pass_rate=1.0000
+2026-06-12 21:29:27,679 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:29:27,702 - root - INFO - Evaluating program e9ebfb73-b6c0-4236-abfa-21cb6ae78296
+2026-06-12 21:29:34,015 - skydiscover.evaluation.evaluator - INFO - Evaluated program e9ebfb73-b6c0-4236-abfa-21cb6ae78296 in 6.31s: combined_score=9738.2362, geomean_us=102.6880, pass_rate=1.0000
+2026-06-12 21:29:34,018 - skydiscover.search.default_discovery_manager - INFO - Iteration 9: Program e9ebfb73-b6c0-4236-abfa-21cb6ae78296 (parent: e0ac92ae-7936-4fcc-a9c0-979bd44c9745) completed in 18.12s
+2026-06-12 21:29:34,020 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=9738.2362, geomean_us=102.6880, pass_rate=1.0000
+2026-06-12 21:29:34,023 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=9)
+2026-06-12 21:29:34,024 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10124.839268, end=10124.839268, horizon=2
+2026-06-12 21:29:45,956 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:29:45,963 - root - INFO - Evaluating program d4c3c209-54c6-4c6f-98b2-bb4d8ef09b1c
+2026-06-12 21:29:45,972 - skydiscover.evaluation.evaluator - INFO - Evaluated program d4c3c209-54c6-4c6f-98b2-bb4d8ef09b1c in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:29:46,039 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 3) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_3 (score pending)
+2026-06-12 21:29:46,046 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm d4c3c209-54c6-4c6f-98b2-bb4d8ef09b1c (10 programs migrated)
+2026-06-12 21:30:06,381 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:30:06,384 - root - INFO - Evaluating program 0e1a9b11-7da8-4d40-be9a-c390c3f8c513
+2026-06-12 21:30:12,527 - skydiscover.evaluation.evaluator - INFO - Evaluated program 0e1a9b11-7da8-4d40-be9a-c390c3f8c513 in 6.14s: combined_score=10019.8393, geomean_us=99.8020, pass_rate=1.0000
+2026-06-12 21:30:12,530 - skydiscover.search.default_discovery_manager - INFO - Iteration 10: Program 0e1a9b11-7da8-4d40-be9a-c390c3f8c513 (parent: c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe) completed in 26.48s
+2026-06-12 21:30:12,534 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 10
+2026-06-12 21:30:12,537 - skydiscover.search.base_database - INFO - Database has 11 programs, best program score is 10124.839268
+2026-06-12 21:30:13,273 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 11 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_10
+2026-06-12 21:30:13,334 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 10 with metrics: combined_score=10124.8393, geomean_us=98.7670, pass_rate=1.0000
+2026-06-12 21:30:13,337 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 10 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_10
+2026-06-12 21:30:13,342 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10019.8393, geomean_us=99.8020, pass_rate=1.0000
+2026-06-12 21:30:29,063 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:30:29,071 - root - INFO - Evaluating program a37ef553-9845-43f4-883f-9204922ffe84
+2026-06-12 21:30:34,936 - skydiscover.evaluation.evaluator - INFO - Evaluated program a37ef553-9845-43f4-883f-9204922ffe84 in 5.86s: combined_score=10092.8543, geomean_us=99.0800, pass_rate=1.0000
+2026-06-12 21:30:34,938 - skydiscover.search.default_discovery_manager - INFO - Iteration 11: Program a37ef553-9845-43f4-883f-9204922ffe84 (parent: c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe) completed in 21.59s
+2026-06-12 21:30:34,939 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10092.8543, geomean_us=99.0800, pass_rate=1.0000
+2026-06-12 21:30:34,940 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=11)
+2026-06-12 21:30:34,942 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10124.839268, end=10124.839268, horizon=2
+2026-06-12 21:30:45,382 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:30:45,393 - root - INFO - Evaluating program e231a92d-b128-4f56-b02d-40ac171616a7
+2026-06-12 21:30:45,405 - skydiscover.evaluation.evaluator - INFO - Evaluated program e231a92d-b128-4f56-b02d-40ac171616a7 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:30:45,513 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 4) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_4 (score pending)
+2026-06-12 21:30:45,523 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm e231a92d-b128-4f56-b02d-40ac171616a7 (12 programs migrated)
+2026-06-12 21:31:05,932 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:31:06,047 - root - INFO - Evaluating program cb59e75f-bb4f-485a-8348-0c449019c988
+2026-06-12 21:31:12,826 - skydiscover.evaluation.evaluator - INFO - Evaluated program cb59e75f-bb4f-485a-8348-0c449019c988 in 6.78s: combined_score=10009.0081, geomean_us=99.9100, pass_rate=1.0000
+2026-06-12 21:31:12,828 - skydiscover.search.default_discovery_manager - INFO - Iteration 12: Program cb59e75f-bb4f-485a-8348-0c449019c988 (parent: 0e1a9b11-7da8-4d40-be9a-c390c3f8c513) completed in 27.30s
+2026-06-12 21:31:12,829 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10009.0081, geomean_us=99.9100, pass_rate=1.0000
+2026-06-12 21:31:29,235 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:31:29,243 - root - INFO - Evaluating program 791cb5d3-c6b8-41d4-b05d-7f8526647b72
+2026-06-12 21:31:36,822 - skydiscover.evaluation.evaluator - INFO - Evaluated program 791cb5d3-c6b8-41d4-b05d-7f8526647b72 in 7.58s: combined_score=9991.8067, geomean_us=100.0820, pass_rate=1.0000
+2026-06-12 21:31:36,825 - skydiscover.search.default_discovery_manager - INFO - Iteration 13: Program 791cb5d3-c6b8-41d4-b05d-7f8526647b72 (parent: a37ef553-9845-43f4-883f-9204922ffe84) completed in 23.99s
+2026-06-12 21:31:36,827 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=9991.8067, geomean_us=100.0820, pass_rate=1.0000
+2026-06-12 21:31:36,828 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=13)
+2026-06-12 21:31:36,829 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10124.839268, end=10124.839268, horizon=2
+2026-06-12 21:31:45,933 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:31:45,937 - root - INFO - Evaluating program d436accc-cfe2-451c-8fc7-2056459a43f0
+2026-06-12 21:31:45,945 - skydiscover.evaluation.evaluator - INFO - Evaluated program d436accc-cfe2-451c-8fc7-2056459a43f0 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:31:45,996 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 5) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_5 (score pending)
+2026-06-12 21:31:46,005 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm d436accc-cfe2-451c-8fc7-2056459a43f0 (14 programs migrated)
+2026-06-12 21:31:59,874 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:31:59,878 - root - INFO - Evaluating program 558268e0-96cb-48ba-b1b2-67fc5ff9550b
+2026-06-12 21:32:05,141 - skydiscover.evaluation.evaluator - INFO - Evaluated program 558268e0-96cb-48ba-b1b2-67fc5ff9550b in 5.26s: combined_score=10134.0738, geomean_us=98.6770, pass_rate=1.0000
+2026-06-12 21:32:05,143 - skydiscover.search.default_discovery_manager - INFO - Iteration 14: Program 558268e0-96cb-48ba-b1b2-67fc5ff9550b (parent: 0e1a9b11-7da8-4d40-be9a-c390c3f8c513) completed in 19.13s
+2026-06-12 21:32:05,144 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10134.0738, geomean_us=98.6770, pass_rate=1.0000
+2026-06-12 21:32:05,145 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 14
+2026-06-12 21:32:24,894 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:32:24,925 - root - INFO - Evaluating program fe27483f-e484-43e7-bbff-edac04287d6d
+2026-06-12 21:32:30,933 - skydiscover.evaluation.evaluator - INFO - Evaluated program fe27483f-e484-43e7-bbff-edac04287d6d in 6.01s: combined_score=10542.7403, geomean_us=94.8520, pass_rate=1.0000
+2026-06-12 21:32:30,935 - skydiscover.search.default_discovery_manager - INFO - Iteration 15: Program fe27483f-e484-43e7-bbff-edac04287d6d (parent: 45b4fd93-8945-49f2-b259-670fb62a17f8) completed in 25.79s
+2026-06-12 21:32:30,938 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 15
+2026-06-12 21:32:30,939 - skydiscover.search.base_database - INFO - Database has 16 programs, best program score is 10542.740269
+2026-06-12 21:32:31,722 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 16 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_15
+2026-06-12 21:32:31,759 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 15 with metrics: combined_score=10542.7403, geomean_us=94.8520, pass_rate=1.0000
+2026-06-12 21:32:31,760 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 15 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_15
+2026-06-12 21:32:31,762 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10542.7403, geomean_us=94.8520, pass_rate=1.0000
+2026-06-12 21:32:31,763 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 15
+2026-06-12 21:32:43,182 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:32:43,185 - root - INFO - Evaluating program 1f50c08a-f2ef-4aad-bb17-2d514214972f
+2026-06-12 21:32:50,689 - skydiscover.evaluation.evaluator - INFO - Evaluated program 1f50c08a-f2ef-4aad-bb17-2d514214972f in 7.50s: combined_score=10138.8002, geomean_us=98.6310, pass_rate=1.0000
+2026-06-12 21:32:50,692 - skydiscover.search.default_discovery_manager - INFO - Iteration 16: Program 1f50c08a-f2ef-4aad-bb17-2d514214972f (parent: 791cb5d3-c6b8-41d4-b05d-7f8526647b72) completed in 18.93s
+2026-06-12 21:32:50,695 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10138.8002, geomean_us=98.6310, pass_rate=1.0000
+2026-06-12 21:33:06,380 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:33:06,387 - root - INFO - Evaluating program 3feb2104-2181-46d3-b20a-4e0fa814eb14
+2026-06-12 21:33:15,365 - skydiscover.evaluation.evaluator - INFO - Evaluated program 3feb2104-2181-46d3-b20a-4e0fa814eb14 in 8.98s: combined_score=10120.2283, geomean_us=98.8120, pass_rate=1.0000
+2026-06-12 21:33:15,369 - skydiscover.search.default_discovery_manager - INFO - Iteration 17: Program 3feb2104-2181-46d3-b20a-4e0fa814eb14 (parent: 5093bc66-1878-4376-a797-ff0d5cd75b1e) completed in 24.67s
+2026-06-12 21:33:15,371 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10120.2283, geomean_us=98.8120, pass_rate=1.0000
+2026-06-12 21:33:15,373 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=17)
+2026-06-12 21:33:15,374 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=3020.857384, improvement=417.901001, start=10124.839268, end=10542.740269, horizon=2
+2026-06-12 21:33:15,380 - skydiscover.search.evox.coevolve_manager - INFO - New best search score: 3020.857384 (+281.130004)
+2026-06-12 21:33:27,451 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:33:27,477 - root - INFO - Evaluating program f374f5b7-20b1-4b3f-957f-c50e9a6afdaf
+2026-06-12 21:33:27,484 - skydiscover.evaluation.evaluator - INFO - Evaluated program f374f5b7-20b1-4b3f-957f-c50e9a6afdaf in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:33:27,543 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 6) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_6 (score pending)
+2026-06-12 21:33:27,550 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm f374f5b7-20b1-4b3f-957f-c50e9a6afdaf (18 programs migrated)
+2026-06-12 21:33:39,428 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:33:39,436 - root - INFO - Evaluating program 3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6
+2026-06-12 21:33:45,720 - skydiscover.evaluation.evaluator - INFO - Evaluated program 3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6 in 6.28s: combined_score=10184.0253, geomean_us=98.1930, pass_rate=1.0000
+2026-06-12 21:33:45,722 - skydiscover.search.default_discovery_manager - INFO - Iteration 18: Program 3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6 (parent: e0ac92ae-7936-4fcc-a9c0-979bd44c9745) completed in 18.17s
+2026-06-12 21:33:45,723 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10184.0253, geomean_us=98.1930, pass_rate=1.0000
+2026-06-12 21:33:56,083 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:33:56,086 - root - INFO - Evaluating program 8869a6dd-9888-4df7-beb2-c5434bc792c0
+2026-06-12 21:34:02,105 - skydiscover.evaluation.evaluator - INFO - Evaluated program 8869a6dd-9888-4df7-beb2-c5434bc792c0 in 6.02s: combined_score=10248.0016, geomean_us=97.5800, pass_rate=1.0000
+2026-06-12 21:34:02,109 - skydiscover.search.default_discovery_manager - INFO - Iteration 19: Program 8869a6dd-9888-4df7-beb2-c5434bc792c0 (parent: e0ac92ae-7936-4fcc-a9c0-979bd44c9745) completed in 16.38s
+2026-06-12 21:34:02,111 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10248.0016, geomean_us=97.5800, pass_rate=1.0000
+2026-06-12 21:34:02,113 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=19)
+2026-06-12 21:34:02,114 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10542.740269, end=10542.740269, horizon=2
+2026-06-12 21:34:15,954 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:34:15,963 - root - INFO - Evaluating program cfb98167-8009-41bd-88ae-69b885d9c64e
+2026-06-12 21:34:15,971 - skydiscover.evaluation.evaluator - INFO - Evaluated program cfb98167-8009-41bd-88ae-69b885d9c64e in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:34:16,052 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 7) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_7 (score pending)
+2026-06-12 21:34:16,063 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm cfb98167-8009-41bd-88ae-69b885d9c64e (20 programs migrated)
+2026-06-12 21:34:27,451 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:34:27,454 - root - INFO - Evaluating program 7381ac6b-3b93-42fd-bafa-177abb6e34f0
+2026-06-12 21:34:31,985 - skydiscover.evaluation.evaluator - INFO - Evaluated program 7381ac6b-3b93-42fd-bafa-177abb6e34f0 in 4.53s: combined_score=10096.7266, geomean_us=99.0420, pass_rate=1.0000
+2026-06-12 21:34:31,987 - skydiscover.search.default_discovery_manager - INFO - Iteration 20: Program 7381ac6b-3b93-42fd-bafa-177abb6e34f0 (parent: e0ac92ae-7936-4fcc-a9c0-979bd44c9745) completed in 15.92s
+2026-06-12 21:34:31,989 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 20
+2026-06-12 21:34:31,990 - skydiscover.search.base_database - INFO - Database has 21 programs, best program score is 10542.740269
+2026-06-12 21:34:32,438 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 21 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_20
+2026-06-12 21:34:32,493 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 20 with metrics: combined_score=10542.7403, geomean_us=94.8520, pass_rate=1.0000
+2026-06-12 21:34:32,494 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 20 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_20
+2026-06-12 21:34:32,495 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10096.7266, geomean_us=99.0420, pass_rate=1.0000
+2026-06-12 21:34:44,075 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:34:44,079 - root - INFO - Evaluating program 3e80d3eb-5443-419d-8d8f-5d3042c05d12
+2026-06-12 21:34:49,020 - skydiscover.evaluation.evaluator - INFO - Evaluated program 3e80d3eb-5443-419d-8d8f-5d3042c05d12 in 4.94s: combined_score=10228.4002, geomean_us=97.7670, pass_rate=1.0000
+2026-06-12 21:34:49,024 - skydiscover.search.default_discovery_manager - INFO - Iteration 21: Program 3e80d3eb-5443-419d-8d8f-5d3042c05d12 (parent: e0ac92ae-7936-4fcc-a9c0-979bd44c9745) completed in 16.53s
+2026-06-12 21:34:49,025 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10228.4002, geomean_us=97.7670, pass_rate=1.0000
+2026-06-12 21:34:49,027 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=21)
+2026-06-12 21:34:49,028 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10542.740269, end=10542.740269, horizon=2
+2026-06-12 21:35:01,838 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:35:01,842 - root - INFO - Evaluating program 11e0665a-bfe1-4416-bc1b-0efbf9d8acf2
+2026-06-12 21:35:01,849 - skydiscover.evaluation.evaluator - INFO - Evaluated program 11e0665a-bfe1-4416-bc1b-0efbf9d8acf2 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:35:01,887 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 8) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_8 (score pending)
+2026-06-12 21:35:01,895 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm 11e0665a-bfe1-4416-bc1b-0efbf9d8acf2 (22 programs migrated)
+2026-06-12 21:35:18,247 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:35:18,252 - root - INFO - Evaluating program 4d613462-bc09-4651-bdcf-652295cd826a
+2026-06-12 21:35:22,811 - skydiscover.evaluation.evaluator - INFO - Evaluated program 4d613462-bc09-4651-bdcf-652295cd826a in 4.56s: combined_score=9956.4901, geomean_us=100.4370, pass_rate=1.0000
+2026-06-12 21:35:22,815 - skydiscover.search.default_discovery_manager - INFO - Iteration 22: Program 4d613462-bc09-4651-bdcf-652295cd826a (parent: 5093bc66-1878-4376-a797-ff0d5cd75b1e) completed in 20.92s
+2026-06-12 21:35:22,817 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=9956.4901, geomean_us=100.4370, pass_rate=1.0000
+2026-06-12 21:35:35,540 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:35:35,544 - root - INFO - Evaluating program ff9894dc-7636-49e2-9ecc-da1d6815deff
+2026-06-12 21:35:41,075 - skydiscover.evaluation.evaluator - INFO - Evaluated program ff9894dc-7636-49e2-9ecc-da1d6815deff in 5.53s: combined_score=10005.0025, geomean_us=99.9500, pass_rate=1.0000
+2026-06-12 21:35:41,077 - skydiscover.search.default_discovery_manager - INFO - Iteration 23: Program ff9894dc-7636-49e2-9ecc-da1d6815deff (parent: 5093bc66-1878-4376-a797-ff0d5cd75b1e) completed in 18.26s
+2026-06-12 21:35:41,080 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10005.0025, geomean_us=99.9500, pass_rate=1.0000
+2026-06-12 21:35:41,085 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=23)
+2026-06-12 21:35:41,088 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10542.740269, end=10542.740269, horizon=2
+2026-06-12 21:35:54,010 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:35:54,019 - root - INFO - Evaluating program ef5f19ba-3d76-43f6-95d1-a1e3eb2d4d15
+2026-06-12 21:35:54,026 - skydiscover.evaluation.evaluator - INFO - Evaluated program ef5f19ba-3d76-43f6-95d1-a1e3eb2d4d15 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-12 21:35:54,081 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 9) - saved to /workspace/grayscale-openevolve/grayscale/skydiscover_runs/run1/search/iteration_9 (score pending)
+2026-06-12 21:35:54,089 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm ef5f19ba-3d76-43f6-95d1-a1e3eb2d4d15 (24 programs migrated)
+2026-06-12 21:36:10,309 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:36:10,314 - root - INFO - Evaluating program 971c2422-2311-4588-82c2-69d9d48780dc
+2026-06-12 21:36:15,552 - skydiscover.evaluation.evaluator - INFO - Evaluated program 971c2422-2311-4588-82c2-69d9d48780dc in 5.24s: combined_score=10028.5815, geomean_us=99.7150, pass_rate=1.0000
+2026-06-12 21:36:15,556 - skydiscover.search.default_discovery_manager - INFO - Iteration 24: Program 971c2422-2311-4588-82c2-69d9d48780dc (parent: 5093bc66-1878-4376-a797-ff0d5cd75b1e) completed in 21.46s
+2026-06-12 21:36:15,558 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10028.5815, geomean_us=99.7150, pass_rate=1.0000
+2026-06-12 21:36:33,905 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-12 21:36:33,914 - root - INFO - Evaluating program d596cb97-030f-451e-9d37-e1a62bf7534e
+2026-06-12 21:36:39,417 - skydiscover.evaluation.evaluator - INFO - Evaluated program d596cb97-030f-451e-9d37-e1a62bf7534e in 5.50s: combined_score=10086.0339, geomean_us=99.1470, pass_rate=1.0000
+2026-06-12 21:36:39,420 - skydiscover.search.default_discovery_manager - INFO - Iteration 25: Program d596cb97-030f-451e-9d37-e1a62bf7534e (parent: 5093bc66-1878-4376-a797-ff0d5cd75b1e) completed in 23.86s
+2026-06-12 21:36:39,424 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 25
+2026-06-12 21:36:39,427 - skydiscover.search.base_database - INFO - Database has 26 programs, best program score is 10542.740269
+2026-06-12 21:36:40,077 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 26 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_25
+2026-06-12 21:36:40,120 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 25 with metrics: combined_score=10542.7403, geomean_us=94.8520, pass_rate=1.0000
+2026-06-12 21:36:40,123 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 25 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_25
+2026-06-12 21:36:40,124 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10086.0339, geomean_us=99.1470, pass_rate=1.0000
+2026-06-12 21:36:40,128 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=10542.740269, end=10542.740269, horizon=2
+2026-06-12 21:36:40,194 - skydiscover.search.evox.coevolve_manager - INFO - [SOLUTION EVOLUTION] Evolution completed: evox
+2026-06-12 21:36:40,855 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 26 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_25
+2026-06-12 21:36:40,879 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 25 with metrics: combined_score=10542.7403, geomean_us=94.8520, pass_rate=1.0000
+2026-06-12 21:36:40,880 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 25 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_25
+2026-06-12 21:36:40,888 - skydiscover.search.main_controller - INFO - Using tracked best program: fe27483f-e484-43e7-bbff-edac04287d6d
+2026-06-12 21:36:40,891 - skydiscover.search.main_controller - INFO - Discovery process complete. Best program has metrics: combined_score=10542.7403, geomean_us=94.8520, pass_rate=1.0000
+2026-06-12 21:36:40,929 - skydiscover.search.main_controller - INFO - Saved best program to grayscale/skydiscover_runs/run1/best/best_program.py with program info to grayscale/skydiscover_runs/run1/best/best_program_info.json

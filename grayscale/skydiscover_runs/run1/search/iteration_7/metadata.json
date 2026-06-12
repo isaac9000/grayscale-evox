@@ -1,0 +1,3530 @@
+{
+  "iteration": 7,
+  "program_id": "cfb98167-8009-41bd-88ae-69b885d9c64e",
+  "score": null,
+  "metrics": {
+    "validity": 1,
+    "combined_score": 0.0,
+    "window_start_iteration": 19,
+    "search_window_start_score": 10542.740269050732,
+    "search_window_end_score": 10542.740269050732,
+    "search_horizon": 2
+  },
+  "pending_score": false,
+  "combined_score": 0.0,
+  "is_new_best": false,
+  "start_db_stats": {
+    "previous_programs": [
+      {
+        "id": "fe27483f-e484-43e7-bbff-edac04287d6d",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8, num_stages=2.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8, num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10542.740269050732,
+          "geomean_us": 94.852,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 15,
+        "parent_id": "45b4fd93-8945-49f2-b259-670fb62a17f8",
+        "other_context_ids": [
+          "a37ef553-9845-43f4-883f-9204922ffe84",
+          "cb59e75f-bb4f-485a-8348-0c449019c988",
+          "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "context_info": [
+          [
+            "",
+            "a37ef553-9845-43f4-883f-9204922ffe84"
+          ],
+          [
+            "",
+            "cb59e75f-bb4f-485a-8348-0c449019c988"
+          ],
+          [
+            "",
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781299950.9351907,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 9989.411224102452,
+            "geomean_us": 100.106,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "8869a6dd-9888-4df7-beb2-c5434bc792c0",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=8,\n        num_stages=4,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10248.001639680262,
+          "geomean_us": 97.58,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 19,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "3feb2104-2181-46d3-b20a-4e0fa814eb14"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "791cb5d3-c6b8-41d4-b05d-7f8526647b72"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781300042.1097226,
+        "metadata": {
+          "changes": "Change 1: Near `rgb_c = rgb.contiguous()...` (8\u219210 lines)",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100. Uses BLOCK_SIZE=2048, num_warps=8, num_stages=3 for H100 bandwidth saturation.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=8,\n        num_stages=3,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10184.02533785504,
+          "geomean_us": 98.193,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 18,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "2518d513-60ab-480a-8784-92f49429a762",
+          "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ],
+          [
+            "",
+            "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ]
+        ],
+        "timestamp": 1781300025.7225873,
+        "metadata": {
+          "changes": "Change 1: Modified function `custom_kernel`: Launch optimized grayscale kernel using HWC fast path on H100. Uses BLOCK_SIZE=2048, num_warps=8, num_stages=3 for H100 bandwidth saturation.",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "1f50c08a-f2ef-4aad-bb17-2d514214972f",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. Uses fma for efficiency.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8 for H100.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    rgb_c = rgb if rgb.is_contiguous() else rgb.contiguous()\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb_c, output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10138.800174387363,
+          "geomean_us": 98.631,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 16,
+        "parent_id": "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+        "other_context_ids": [
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+          "2518d513-60ab-480a-8784-92f49429a762"
+        ],
+        "parent_info": [
+          "",
+          "791cb5d3-c6b8-41d4-b05d-7f8526647b72"
+        ],
+        "context_info": [
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "558268e0-96cb-48ba-b1b2-67fc5ff9550b"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ]
+        ],
+        "timestamp": 1781299970.692252,
+        "metadata": {
+          "changes": "Change 1: Modified function `custom_kernel`: Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 9991.806718490838,
+            "geomean_us": 100.082,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: stride-3 loads for R/G/B, coalesced output. Tuned for H100 bandwidth.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, default num_warps.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10134.073796325385,
+          "geomean_us": 98.677,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 14,
+        "parent_id": "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+        "other_context_ids": [
+          "cb59e75f-bb4f-485a-8348-0c449019c988",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "a37ef553-9845-43f4-883f-9204922ffe84"
+        ],
+        "parent_info": [
+          "",
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+        ],
+        "context_info": [
+          [
+            "",
+            "cb59e75f-bb4f-485a-8348-0c449019c988"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "a37ef553-9845-43f4-883f-9204922ffe84"
+          ]
+        ],
+        "timestamp": 1781299925.143099,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: stride-3 loads for R/G/B, coalesced output. Tuned for H100 bandwidth.",
+          "parent_metrics": {
+            "combined_score": 10019.83928177792,
+            "geomean_us": 99.802,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10124.839268176618,
+          "geomean_us": 98.767,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 3,
+        "parent_id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "other_context_ids": [
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "context_info": [
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781299584.1400552,
+        "metadata": {
+          "changes": "Change 1: Renamed function `grayscale_kernel` \u2192 `grayscale_kernel_hwc`",
+          "parent_metrics": {
+            "combined_score": 9744.404275844596,
+            "geomean_us": 102.623,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10120.228312350728,
+          "geomean_us": 98.812,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 17,
+        "parent_id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "other_context_ids": [
+          "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "2518d513-60ab-480a-8784-92f49429a762",
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+        ],
+        "parent_info": [
+          "",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "context_info": [
+          [
+            "",
+            "558268e0-96cb-48ba-b1b2-67fc5ff9550b"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ],
+          [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+          ]
+        ],
+        "timestamp": 1781299995.3691654,
+        "metadata": {
+          "changes": "Change 1: Renamed function `grayscale_kernel` \u2192 `grayscale_kernel_hwc`",
+          "parent_metrics": {
+            "combined_score": 9744.404275844596,
+            "geomean_us": 102.623,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "2518d513-60ab-480a-8784-92f49429a762",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10092.956125919722,
+          "geomean_us": 99.079,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 8,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ]
+        ],
+        "timestamp": 1781299755.891754,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Coalesced output.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "a37ef553-9845-43f4-883f-9204922ffe84",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8, num_stages=2.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8, num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10092.854259184498,
+          "geomean_us": 99.08,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 11,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+          "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "2518d513-60ab-480a-8784-92f49429a762"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+          ],
+          [
+            "",
+            "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ]
+        ],
+        "timestamp": 1781299834.9378734,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_hwc_vec(rgb_ptr, out_ptr, n_pixels_aligned, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC float32 vectorized: loads 4 floats at once via reinterpret, processes 4 pixels per 3 loads of float4.\n    Handles the main aligned region fast, remainder via scalar fallback.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE, num_warps=8,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10055.203064825895,
+          "geomean_us": 99.451,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 6,
+        "parent_id": "927ec2ef-91a5-4f59-a0d9-81378e679893",
+        "other_context_ids": [
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+        ],
+        "parent_info": [
+          "",
+          "927ec2ef-91a5-4f59-a0d9-81378e679893"
+        ],
+        "context_info": [
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ]
+        ],
+        "timestamp": 1781299681.8213315,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 10024.560172422436,
+            "geomean_us": 99.755,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "927ec2ef-91a5-4f59-a0d9-81378e679893",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10024.560172422436,
+          "geomean_us": 99.755,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 5,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ]
+        ],
+        "timestamp": 1781299641.2340677,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=4, num_stages=2.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=4, num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10019.83928177792,
+          "geomean_us": 99.802,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 10,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ]
+        ],
+        "timestamp": 1781299812.530445,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "cb59e75f-bb4f-485a-8348-0c449019c988",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: load 3*BLOCK_SIZE floats contiguously, extract R/G/B by gather for coalesced reads.\"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    pixel_offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = pixel_offsets < n_pixels\n    flat = tl.load(rgb_ptr + block_start * 3 + tl.arange(0, BLOCK_SIZE * 3),\n                   mask=(block_start * 3 + tl.arange(0, BLOCK_SIZE * 3)) < n_pixels * 3, other=0.0)\n    idx = tl.arange(0, BLOCK_SIZE)\n    r = tl.gather(flat, idx * 3,     0)\n    g = tl.gather(flat, idx * 3 + 1, 0)\n    b = tl.gather(flat, idx * 3 + 2, 0)\n    tl.store(out_ptr + pixel_offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_strided(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: stride-3 loads for R/G/B, coalesced output write.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, default num_warps/stages.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_strided[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10009.008107296568,
+          "geomean_us": 99.91,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 12,
+        "parent_id": "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+        "other_context_ids": [
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "parent_info": [
+          "",
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+        ],
+        "context_info": [
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ]
+        ],
+        "timestamp": 1781299872.8280585,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: load 3*BLOCK_SIZE floats contiguously, extract R/G/B by gather for coalesced reads.",
+          "parent_metrics": {
+            "combined_score": 10019.83928177792,
+            "geomean_us": 99.802,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. Uses fma for efficiency.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=2048, num_warps=16, num_stages=3.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 2048\n    rgb_c = rgb if rgb.is_contiguous() else rgb.contiguous()\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb_c, output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=16, num_stages=3,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9991.806718490838,
+          "geomean_us": 100.082,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 13,
+        "parent_id": "a37ef553-9845-43f4-883f-9204922ffe84",
+        "other_context_ids": [
+          "cb59e75f-bb4f-485a-8348-0c449019c988",
+          "2518d513-60ab-480a-8784-92f49429a762",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+        ],
+        "parent_info": [
+          "",
+          "a37ef553-9845-43f4-883f-9204922ffe84"
+        ],
+        "context_info": [
+          [
+            "",
+            "cb59e75f-bb4f-485a-8348-0c449019c988"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ]
+        ],
+        "timestamp": 1781299896.825085,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. Uses fma for efficiency.",
+          "parent_metrics": {
+            "combined_score": 10092.854259184498,
+            "geomean_us": 99.08,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "45b4fd93-8945-49f2-b259-670fb62a17f8",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads: each pixel's RGB is contiguous in HWC layout,\nso we load 3 floats at once per pixel using stride-1 access.\nBLOCK_SIZE tuned for H100 memory bandwidth.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Optimized kernel for HWC contiguous float32 layout on H100.\n    Each thread block processes BLOCK_SIZE pixels with strided R/G/B loads.\n    BLOCK_SIZE=1024 chosen for H100 warp occupancy and L2 cache efficiency.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    # In HWC contiguous layout, pixel i has R at 3*i, G at 3*i+1, B at 3*i+2\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_general(\n    rgb_ptr, out_ptr,\n    H, W,\n    stride_h, stride_w, stride_c,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    General kernel for non-contiguous HWC tensors.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    h_idx = offsets // W\n    w_idx = offsets % W\n\n    base = h_idx * stride_h + w_idx * stride_w\n    r = tl.load(rgb_ptr + base + 0 * stride_c, mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1 * stride_c, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2 * stride_c, mask=mask, other=0.0)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9989.411224102452,
+          "geomean_us": 100.106,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 2,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ]
+        ],
+        "timestamp": 1781299563.1159737,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: Optimized kernel: loads 3*BLOCK_SIZE floats contiguously per block,\nChange 2: Modified function `grayscale_kernel_hwc`: Optimized kernel for HWC contiguous float32 layout on H100.\nChange 3: Modified function `custom_kernel`: Launch optimized grayscale kernel using HWC fast path on H100.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=4, num_stages=3 for H100 pipelining.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=4, num_stages=3.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=4, num_stages=3,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9934.13667385236,
+          "geomean_us": 100.663,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 7,
+        "parent_id": "927ec2ef-91a5-4f59-a0d9-81378e679893",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+        ],
+        "parent_info": [
+          "",
+          "927ec2ef-91a5-4f59-a0d9-81378e679893"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ]
+        ],
+        "timestamp": 1781299706.8751495,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=4, num_stages=3 for H100 pipelining.",
+          "parent_metrics": {
+            "combined_score": 10024.560172422436,
+            "geomean_us": 99.755,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads: each pixel's RGB is contiguous in HWC layout,\nso we load 3 floats at once per pixel using stride-1 access.\nBLOCK_SIZE tuned for H100 memory bandwidth.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Optimized kernel assuming contiguous HWC float32 tensor.\n    Loads R, G, B as consecutive elements (stride=1 in channel dim).\n    Each block handles BLOCK_SIZE pixels with vectorized channel loads.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    # In HWC contiguous layout, pixel i has R at 3*i, G at 3*i+1, B at 3*i+2\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base + 0, mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_general(\n    rgb_ptr, out_ptr,\n    H, W,\n    stride_h, stride_w, stride_c,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    General kernel for non-contiguous HWC tensors.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    h_idx = offsets // W\n    w_idx = offsets % W\n\n    base = h_idx * stride_h + w_idx * stride_w\n    r = tl.load(rgb_ptr + base + 0 * stride_c, mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1 * stride_c, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2 * stride_c, mask=mask, other=0.0)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel, using fast HWC path when possible.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    if rgb.is_contiguous():\n        grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n        grayscale_kernel_hwc[grid](\n            rgb, output,\n            n_pixels,\n            BLOCK_SIZE=BLOCK_SIZE,\n        )\n    else:\n        rgb_c = rgb.contiguous()\n        stride_h, stride_w, stride_c = rgb_c.stride()\n        grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n        grayscale_kernel_hwc[grid](\n            rgb_c, output,\n            n_pixels,\n            BLOCK_SIZE=BLOCK_SIZE,\n        )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9784.161399526447,
+          "geomean_us": 102.206,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 1,
+        "parent_id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "other_context_ids": [],
+        "parent_info": [
+          "",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "context_info": [],
+        "timestamp": 1781299525.1984828,
+        "metadata": {
+          "changes": "Change 1: Renamed function `grayscale_kernel` \u2192 `grayscale_kernel_hwc`",
+          "parent_metrics": {
+            "combined_score": 9744.404275844596,
+            "geomean_us": 102.623,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nInitial Grayscale submission with Triton kernel.\nY = 0.2989 R + 0.5870 G + 0.1140 B\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel(\n    rgb_ptr, out_ptr,\n    H, W,\n    stride_h, stride_w, stride_c,\n    BLOCK_SIZE: tl.constexpr,\n):\n    pid = tl.program_id(0)\n    n_pixels = H * W\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    h_idx = offsets // W\n    w_idx = offsets % W\n\n    r_ptr = rgb_ptr + h_idx * stride_h + w_idx * stride_w + 0 * stride_c\n    g_ptr = rgb_ptr + h_idx * stride_h + w_idx * stride_w + 1 * stride_c\n    b_ptr = rgb_ptr + h_idx * stride_h + w_idx * stride_w + 2 * stride_c\n\n    r = tl.load(r_ptr, mask=mask)\n    g = tl.load(g_ptr, mask=mask)\n    b = tl.load(b_ptr, mask=mask)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    out_offsets = h_idx * W + w_idx\n    tl.store(out_ptr + out_offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    rgb = rgb.contiguous()\n    stride_h, stride_w, stride_c = rgb.stride()\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel[grid](\n        rgb, output, H, W,\n        stride_h, stride_w, stride_c,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9744.404275844596,
+          "geomean_us": 102.623,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 0,
+        "parent_id": null,
+        "other_context_ids": null,
+        "parent_info": null,
+        "context_info": null,
+        "timestamp": 1781299453.669407,
+        "metadata": {},
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=4,\n        num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9738.236210657526,
+          "geomean_us": 102.688,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 9,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "927ec2ef-91a5-4f59-a0d9-81378e679893"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "927ec2ef-91a5-4f59-a0d9-81378e679893"
+          ]
+        ],
+        "timestamp": 1781299774.018781,
+        "metadata": {
+          "changes": "Change 1: Near `BLOCK_SIZE = 1024...` (10\u219212 lines)",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Coalesced load kernel for contiguous HWC float32 layout on H100.\n    Loads 3*BLOCK_SIZE floats contiguously per block, then extracts R/G/B\n    by indexing at positions 0,3,6,... 1,4,7,... 2,5,8,... for perfect\n    memory coalescing. Output stored contiguously.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    pixel_offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = pixel_offsets < n_pixels\n\n    # Load 3*BLOCK_SIZE floats contiguously for perfect coalescing\n    flat_start = block_start * 3\n    flat_offsets = flat_start + tl.arange(0, BLOCK_SIZE * 3)\n    flat_mask = flat_offsets < n_pixels * 3\n    flat = tl.load(rgb_ptr + flat_offsets, mask=flat_mask, other=0.0)\n\n    # Extract R, G, B channels from interleaved data\n    idx = tl.arange(0, BLOCK_SIZE)\n    r = tl.gather(flat, idx * 3,     0)\n    g = tl.gather(flat, idx * 3 + 1, 0)\n    b = tl.gather(flat, idx * 3 + 2, 0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + pixel_offsets, gray, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_hwc_simple(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Simple strided kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access. BLOCK_SIZE=2048 for H100 bandwidth.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc_simple[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9715.812484819044,
+          "geomean_us": 102.925,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 4,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781299611.2122443,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: Coalesced load kernel for contiguous HWC float32 layout on H100.",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      }
+    ],
+    "population_size": 20,
+    "solution_score_summary": {
+      "best": 10542.740269050732,
+      "q75": 10131.765164288194,
+      "q50": 10039.881618624166,
+      "q25": 9947.955311414884,
+      "worst": 9715.812484819044,
+      "score_tiers": {
+        "top": {
+          "threshold": "score >= 10131.7652",
+          "pct_programs": 25.0
+        },
+        "upper_mid": {
+          "threshold": "10039.8816 <= score < 10131.7652",
+          "pct_programs": 25.0
+        },
+        "lower_mid": {
+          "threshold": "9947.9553 <= score < 10039.8816",
+          "pct_programs": 25.0
+        },
+        "bottom": {
+          "threshold": "score < 9947.9553",
+          "pct_programs": 25.0
+        }
+      },
+      "unique_scores": 20
+    },
+    "avg_solutions_per_parent": 2.375,
+    "top_solution_scores": [
+      10542.740269050732,
+      10248.001639680262,
+      10184.02533785504,
+      10138.800174387363,
+      10134.073796325385,
+      10124.839268176618,
+      10120.228312350728,
+      10092.956125919722,
+      10092.854259184498,
+      10055.203064825895,
+      10024.560172422436,
+      10019.83928177792,
+      10009.008107296568,
+      9991.806718490838,
+      9989.411224102452,
+      9934.13667385236,
+      9784.161399526447,
+      9744.404275844596,
+      9738.236210657526,
+      9715.812484819044
+    ],
+    "recent_solution_stats": {
+      "num_recent_iterations": 20,
+      "execution_trace": [
+        {
+          "iteration": 0,
+          "program": [
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "parent": null,
+          "context": null
+        },
+        {
+          "iteration": 1,
+          "program": [
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "parent": [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "context": null
+        },
+        {
+          "iteration": 2,
+          "program": [
+            "45b4fd93-8945-49f2-b259-670fb62a17f8",
+            9989.411224102452
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ]
+          ]
+        },
+        {
+          "iteration": 3,
+          "program": [
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "parent": [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "context": [
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        },
+        {
+          "iteration": 4,
+          "program": [
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+            9715.812484819044
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        },
+        {
+          "iteration": 5,
+          "program": [
+            "927ec2ef-91a5-4f59-a0d9-81378e679893",
+            10024.560172422436
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ]
+          ]
+        },
+        {
+          "iteration": 6,
+          "program": [
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+            10055.203064825895
+          ],
+          "parent": [
+            "",
+            "927ec2ef-91a5-4f59-a0d9-81378e679893",
+            10024.560172422436
+          ],
+          "context": [
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ]
+          ]
+        },
+        {
+          "iteration": 7,
+          "program": [
+            "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+            9934.13667385236
+          ],
+          "parent": [
+            "",
+            "927ec2ef-91a5-4f59-a0d9-81378e679893",
+            10024.560172422436
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ]
+          ]
+        },
+        {
+          "iteration": 8,
+          "program": [
+            "2518d513-60ab-480a-8784-92f49429a762",
+            10092.956125919722
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ]
+          ]
+        },
+        {
+          "iteration": 9,
+          "program": [
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+            9738.236210657526
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "927ec2ef-91a5-4f59-a0d9-81378e679893",
+              10024.560172422436
+            ]
+          ]
+        },
+        {
+          "iteration": 10,
+          "program": [
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+            10019.83928177792
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+              9738.236210657526
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ]
+          ]
+        },
+        {
+          "iteration": 11,
+          "program": [
+            "a37ef553-9845-43f4-883f-9204922ffe84",
+            10092.854259184498
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+              10019.83928177792
+            ],
+            [
+              "",
+              "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+              9934.13667385236
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ]
+          ]
+        },
+        {
+          "iteration": 12,
+          "program": [
+            "cb59e75f-bb4f-485a-8348-0c449019c988",
+            10009.008107296568
+          ],
+          "parent": [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+            10019.83928177792
+          ],
+          "context": [
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+              9738.236210657526
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ]
+          ]
+        },
+        {
+          "iteration": 13,
+          "program": [
+            "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+            9991.806718490838
+          ],
+          "parent": [
+            "",
+            "a37ef553-9845-43f4-883f-9204922ffe84",
+            10092.854259184498
+          ],
+          "context": [
+            [
+              "",
+              "cb59e75f-bb4f-485a-8348-0c449019c988",
+              10009.008107296568
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ]
+          ]
+        },
+        {
+          "iteration": 14,
+          "program": [
+            "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+            10134.073796325385
+          ],
+          "parent": [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+            10019.83928177792
+          ],
+          "context": [
+            [
+              "",
+              "cb59e75f-bb4f-485a-8348-0c449019c988",
+              10009.008107296568
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "a37ef553-9845-43f4-883f-9204922ffe84",
+              10092.854259184498
+            ]
+          ]
+        },
+        {
+          "iteration": 15,
+          "program": [
+            "fe27483f-e484-43e7-bbff-edac04287d6d",
+            10542.740269050732
+          ],
+          "parent": [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8",
+            9989.411224102452
+          ],
+          "context": [
+            [
+              "",
+              "a37ef553-9845-43f4-883f-9204922ffe84",
+              10092.854259184498
+            ],
+            [
+              "",
+              "cb59e75f-bb4f-485a-8348-0c449019c988",
+              10009.008107296568
+            ],
+            [
+              "",
+              "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+              9738.236210657526
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        },
+        {
+          "iteration": 16,
+          "program": [
+            "1f50c08a-f2ef-4aad-bb17-2d514214972f",
+            10138.800174387363
+          ],
+          "parent": [
+            "",
+            "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+            9991.806718490838
+          ],
+          "context": [
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+              10134.073796325385
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ]
+          ]
+        },
+        {
+          "iteration": 17,
+          "program": [
+            "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+            10120.228312350728
+          ],
+          "parent": [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "context": [
+            [
+              "",
+              "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+              10134.073796325385
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ],
+            [
+              "",
+              "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+              10019.83928177792
+            ]
+          ]
+        },
+        {
+          "iteration": 18,
+          "program": [
+            "3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6",
+            10184.02533785504
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ],
+            [
+              "",
+              "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+              9934.13667385236
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ]
+          ]
+        },
+        {
+          "iteration": 19,
+          "program": [
+            "8869a6dd-9888-4df7-beb2-c5434bc792c0",
+            10248.001639680262
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+              10120.228312350728
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+              9991.806718490838
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        }
+      ],
+      "score_trajectory": [
+        9744.404275844596,
+        9784.161399526447,
+        9989.411224102452,
+        10124.839268176618,
+        9715.812484819044,
+        10024.560172422436,
+        10055.203064825895,
+        9934.13667385236,
+        10092.956125919722,
+        9738.236210657526,
+        10019.83928177792,
+        10092.854259184498,
+        10009.008107296568,
+        9991.806718490838,
+        10134.073796325385,
+        10542.740269050732,
+        10138.800174387363,
+        10120.228312350728,
+        10184.02533785504,
+        10248.001639680262
+      ],
+      "parent_scores": [
+        null,
+        9744.404275844596,
+        9784.161399526447,
+        9744.404275844596,
+        10124.839268176618,
+        9784.161399526447,
+        10024.560172422436,
+        10024.560172422436,
+        9784.161399526447,
+        10124.839268176618,
+        9784.161399526447,
+        9784.161399526447,
+        10019.83928177792,
+        10092.854259184498,
+        10019.83928177792,
+        9989.411224102452,
+        9991.806718490838,
+        9744.404275844596,
+        10124.839268176618,
+        10124.839268176618
+      ],
+      "iterations_without_improvement": 4,
+      "improvement_threshold": 0.01,
+      "most_reused_parent_ratio": 0.2631578947368421,
+      "most_reused_parent_score": 9784.161399526447,
+      "most_reused_context_ratio": 0.5555555555555556,
+      "most_reused_context_score": 9989.411224102452
+    }
+  },
+  "end_db_stats": {
+    "previous_programs": [
+      {
+        "id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nInitial Grayscale submission with Triton kernel.\nY = 0.2989 R + 0.5870 G + 0.1140 B\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel(\n    rgb_ptr, out_ptr,\n    H, W,\n    stride_h, stride_w, stride_c,\n    BLOCK_SIZE: tl.constexpr,\n):\n    pid = tl.program_id(0)\n    n_pixels = H * W\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    h_idx = offsets // W\n    w_idx = offsets % W\n\n    r_ptr = rgb_ptr + h_idx * stride_h + w_idx * stride_w + 0 * stride_c\n    g_ptr = rgb_ptr + h_idx * stride_h + w_idx * stride_w + 1 * stride_c\n    b_ptr = rgb_ptr + h_idx * stride_h + w_idx * stride_w + 2 * stride_c\n\n    r = tl.load(r_ptr, mask=mask)\n    g = tl.load(g_ptr, mask=mask)\n    b = tl.load(b_ptr, mask=mask)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    out_offsets = h_idx * W + w_idx\n    tl.store(out_ptr + out_offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    rgb = rgb.contiguous()\n    stride_h, stride_w, stride_c = rgb.stride()\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel[grid](\n        rgb, output, H, W,\n        stride_h, stride_w, stride_c,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9744.404275844596,
+          "geomean_us": 102.623,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 0,
+        "parent_id": null,
+        "other_context_ids": null,
+        "parent_info": null,
+        "context_info": null,
+        "timestamp": 1781299453.669407,
+        "metadata": {},
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads: each pixel's RGB is contiguous in HWC layout,\nso we load 3 floats at once per pixel using stride-1 access.\nBLOCK_SIZE tuned for H100 memory bandwidth.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Optimized kernel assuming contiguous HWC float32 tensor.\n    Loads R, G, B as consecutive elements (stride=1 in channel dim).\n    Each block handles BLOCK_SIZE pixels with vectorized channel loads.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    # In HWC contiguous layout, pixel i has R at 3*i, G at 3*i+1, B at 3*i+2\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base + 0, mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_general(\n    rgb_ptr, out_ptr,\n    H, W,\n    stride_h, stride_w, stride_c,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    General kernel for non-contiguous HWC tensors.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    h_idx = offsets // W\n    w_idx = offsets % W\n\n    base = h_idx * stride_h + w_idx * stride_w\n    r = tl.load(rgb_ptr + base + 0 * stride_c, mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1 * stride_c, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2 * stride_c, mask=mask, other=0.0)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel, using fast HWC path when possible.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    if rgb.is_contiguous():\n        grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n        grayscale_kernel_hwc[grid](\n            rgb, output,\n            n_pixels,\n            BLOCK_SIZE=BLOCK_SIZE,\n        )\n    else:\n        rgb_c = rgb.contiguous()\n        stride_h, stride_w, stride_c = rgb_c.stride()\n        grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n        grayscale_kernel_hwc[grid](\n            rgb_c, output,\n            n_pixels,\n            BLOCK_SIZE=BLOCK_SIZE,\n        )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9784.161399526447,
+          "geomean_us": 102.206,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 1,
+        "parent_id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "other_context_ids": [],
+        "parent_info": [
+          "",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "context_info": [],
+        "timestamp": 1781299525.1984828,
+        "metadata": {
+          "changes": "Change 1: Renamed function `grayscale_kernel` \u2192 `grayscale_kernel_hwc`",
+          "parent_metrics": {
+            "combined_score": 9744.404275844596,
+            "geomean_us": 102.623,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "45b4fd93-8945-49f2-b259-670fb62a17f8",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads: each pixel's RGB is contiguous in HWC layout,\nso we load 3 floats at once per pixel using stride-1 access.\nBLOCK_SIZE tuned for H100 memory bandwidth.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Optimized kernel for HWC contiguous float32 layout on H100.\n    Each thread block processes BLOCK_SIZE pixels with strided R/G/B loads.\n    BLOCK_SIZE=1024 chosen for H100 warp occupancy and L2 cache efficiency.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    # In HWC contiguous layout, pixel i has R at 3*i, G at 3*i+1, B at 3*i+2\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_general(\n    rgb_ptr, out_ptr,\n    H, W,\n    stride_h, stride_w, stride_c,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    General kernel for non-contiguous HWC tensors.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    h_idx = offsets // W\n    w_idx = offsets % W\n\n    base = h_idx * stride_h + w_idx * stride_w\n    r = tl.load(rgb_ptr + base + 0 * stride_c, mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1 * stride_c, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2 * stride_c, mask=mask, other=0.0)\n\n    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9989.411224102452,
+          "geomean_us": 100.106,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 2,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ]
+        ],
+        "timestamp": 1781299563.1159737,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: Optimized kernel: loads 3*BLOCK_SIZE floats contiguously per block,\nChange 2: Modified function `grayscale_kernel_hwc`: Optimized kernel for HWC contiguous float32 layout on H100.\nChange 3: Modified function `custom_kernel`: Launch optimized grayscale kernel using HWC fast path on H100.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10124.839268176618,
+          "geomean_us": 98.767,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 3,
+        "parent_id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "other_context_ids": [
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "context_info": [
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781299584.1400552,
+        "metadata": {
+          "changes": "Change 1: Renamed function `grayscale_kernel` \u2192 `grayscale_kernel_hwc`",
+          "parent_metrics": {
+            "combined_score": 9744.404275844596,
+            "geomean_us": 102.623,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Coalesced load kernel for contiguous HWC float32 layout on H100.\n    Loads 3*BLOCK_SIZE floats contiguously per block, then extracts R/G/B\n    by indexing at positions 0,3,6,... 1,4,7,... 2,5,8,... for perfect\n    memory coalescing. Output stored contiguously.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    pixel_offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = pixel_offsets < n_pixels\n\n    # Load 3*BLOCK_SIZE floats contiguously for perfect coalescing\n    flat_start = block_start * 3\n    flat_offsets = flat_start + tl.arange(0, BLOCK_SIZE * 3)\n    flat_mask = flat_offsets < n_pixels * 3\n    flat = tl.load(rgb_ptr + flat_offsets, mask=flat_mask, other=0.0)\n\n    # Extract R, G, B channels from interleaved data\n    idx = tl.arange(0, BLOCK_SIZE)\n    r = tl.gather(flat, idx * 3,     0)\n    g = tl.gather(flat, idx * 3 + 1, 0)\n    b = tl.gather(flat, idx * 3 + 2, 0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + pixel_offsets, gray, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_hwc_simple(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Simple strided kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access. BLOCK_SIZE=2048 for H100 bandwidth.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc_simple[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9715.812484819044,
+          "geomean_us": 102.925,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 4,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781299611.2122443,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: Coalesced load kernel for contiguous HWC float32 layout on H100.",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "927ec2ef-91a5-4f59-a0d9-81378e679893",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10024.560172422436,
+          "geomean_us": 99.755,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 5,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ]
+        ],
+        "timestamp": 1781299641.2340677,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_hwc_vec(rgb_ptr, out_ptr, n_pixels_aligned, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC float32 vectorized: loads 4 floats at once via reinterpret, processes 4 pixels per 3 loads of float4.\n    Handles the main aligned region fast, remainder via scalar fallback.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE, num_warps=8,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10055.203064825895,
+          "geomean_us": 99.451,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 6,
+        "parent_id": "927ec2ef-91a5-4f59-a0d9-81378e679893",
+        "other_context_ids": [
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+        ],
+        "parent_info": [
+          "",
+          "927ec2ef-91a5-4f59-a0d9-81378e679893"
+        ],
+        "context_info": [
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ]
+        ],
+        "timestamp": 1781299681.8213315,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 10024.560172422436,
+            "geomean_us": 99.755,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=4, num_stages=3 for H100 pipelining.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=4, num_stages=3.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=4, num_stages=3,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9934.13667385236,
+          "geomean_us": 100.663,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 7,
+        "parent_id": "927ec2ef-91a5-4f59-a0d9-81378e679893",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+        ],
+        "parent_info": [
+          "",
+          "927ec2ef-91a5-4f59-a0d9-81378e679893"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ]
+        ],
+        "timestamp": 1781299706.8751495,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=4, num_stages=3 for H100 pipelining.",
+          "parent_metrics": {
+            "combined_score": 10024.560172422436,
+            "geomean_us": 99.755,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "2518d513-60ab-480a-8784-92f49429a762",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels, BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10092.956125919722,
+          "geomean_us": 99.079,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 8,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ]
+        ],
+        "timestamp": 1781299755.891754,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Coalesced output.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=4,\n        num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9738.236210657526,
+          "geomean_us": 102.688,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 9,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "927ec2ef-91a5-4f59-a0d9-81378e679893"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "927ec2ef-91a5-4f59-a0d9-81378e679893"
+          ]
+        ],
+        "timestamp": 1781299774.018781,
+        "metadata": {
+          "changes": "Change 1: Near `BLOCK_SIZE = 1024...` (10\u219212 lines)",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=4, num_stages=2.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=4, num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10019.83928177792,
+          "geomean_us": 99.802,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 10,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ]
+        ],
+        "timestamp": 1781299812.530445,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "a37ef553-9845-43f4-883f-9204922ffe84",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8, num_stages=2.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8, num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10092.854259184498,
+          "geomean_us": 99.08,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 11,
+        "parent_id": "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+        "other_context_ids": [
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+          "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "2518d513-60ab-480a-8784-92f49429a762"
+        ],
+        "parent_info": [
+          "",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "context_info": [
+          [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+          ],
+          [
+            "",
+            "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b"
+          ],
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ]
+        ],
+        "timestamp": 1781299834.9378734,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 9784.161399526447,
+            "geomean_us": 102.206,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "cb59e75f-bb4f-485a-8348-0c449019c988",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: load 3*BLOCK_SIZE floats contiguously, extract R/G/B by gather for coalesced reads.\"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    pixel_offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = pixel_offsets < n_pixels\n    flat = tl.load(rgb_ptr + block_start * 3 + tl.arange(0, BLOCK_SIZE * 3),\n                   mask=(block_start * 3 + tl.arange(0, BLOCK_SIZE * 3)) < n_pixels * 3, other=0.0)\n    idx = tl.arange(0, BLOCK_SIZE)\n    r = tl.gather(flat, idx * 3,     0)\n    g = tl.gather(flat, idx * 3 + 1, 0)\n    b = tl.gather(flat, idx * 3 + 2, 0)\n    tl.store(out_ptr + pixel_offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\n@triton.jit\ndef grayscale_kernel_strided(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: stride-3 loads for R/G/B, coalesced output write.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, default num_warps/stages.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_strided[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10009.008107296568,
+          "geomean_us": 99.91,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 12,
+        "parent_id": "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+        "other_context_ids": [
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "parent_info": [
+          "",
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+        ],
+        "context_info": [
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ]
+        ],
+        "timestamp": 1781299872.8280585,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: load 3*BLOCK_SIZE floats contiguously, extract R/G/B by gather for coalesced reads.",
+          "parent_metrics": {
+            "combined_score": 10019.83928177792,
+            "geomean_us": 99.802,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. Uses fma for efficiency.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=2048, num_warps=16, num_stages=3.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 2048\n    rgb_c = rgb if rgb.is_contiguous() else rgb.contiguous()\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb_c, output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=16, num_stages=3,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 9991.806718490838,
+          "geomean_us": 100.082,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 13,
+        "parent_id": "a37ef553-9845-43f4-883f-9204922ffe84",
+        "other_context_ids": [
+          "cb59e75f-bb4f-485a-8348-0c449019c988",
+          "2518d513-60ab-480a-8784-92f49429a762",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+          "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+        ],
+        "parent_info": [
+          "",
+          "a37ef553-9845-43f4-883f-9204922ffe84"
+        ],
+        "context_info": [
+          [
+            "",
+            "cb59e75f-bb4f-485a-8348-0c449019c988"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ],
+          [
+            "",
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6"
+          ]
+        ],
+        "timestamp": 1781299896.825085,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. Uses fma for efficiency.",
+          "parent_metrics": {
+            "combined_score": 10092.854259184498,
+            "geomean_us": 99.08,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: stride-3 loads for R/G/B, coalesced output. Tuned for H100 bandwidth.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, default num_warps.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10134.073796325385,
+          "geomean_us": 98.677,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 14,
+        "parent_id": "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+        "other_context_ids": [
+          "cb59e75f-bb4f-485a-8348-0c449019c988",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "a37ef553-9845-43f4-883f-9204922ffe84"
+        ],
+        "parent_info": [
+          "",
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+        ],
+        "context_info": [
+          [
+            "",
+            "cb59e75f-bb4f-485a-8348-0c449019c988"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "a37ef553-9845-43f4-883f-9204922ffe84"
+          ]
+        ],
+        "timestamp": 1781299925.143099,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: stride-3 loads for R/G/B, coalesced output. Tuned for H100 bandwidth.",
+          "parent_metrics": {
+            "combined_score": 10019.83928177792,
+            "geomean_us": 99.802,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "fe27483f-e484-43e7-bbff-edac04287d6d",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8, num_stages=2.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8, num_stages=2,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10542.740269050732,
+          "geomean_us": 94.852,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 15,
+        "parent_id": "45b4fd93-8945-49f2-b259-670fb62a17f8",
+        "other_context_ids": [
+          "a37ef553-9845-43f4-883f-9204922ffe84",
+          "cb59e75f-bb4f-485a-8348-0c449019c988",
+          "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "context_info": [
+          [
+            "",
+            "a37ef553-9845-43f4-883f-9204922ffe84"
+          ],
+          [
+            "",
+            "cb59e75f-bb4f-485a-8348-0c449019c988"
+          ],
+          [
+            "",
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781299950.9351907,
+        "metadata": {
+          "changes": "Change 1: Modified function `grayscale_kernel_hwc`: HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 9989.411224102452,
+            "geomean_us": 100.106,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "1f50c08a-f2ef-4aad-bb17-2d514214972f",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output. Uses fma for efficiency.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8 for H100.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    rgb_c = rgb if rgb.is_contiguous() else rgb.contiguous()\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb_c, output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10138.800174387363,
+          "geomean_us": 98.631,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 16,
+        "parent_id": "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+        "other_context_ids": [
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+          "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+          "2518d513-60ab-480a-8784-92f49429a762"
+        ],
+        "parent_info": [
+          "",
+          "791cb5d3-c6b8-41d4-b05d-7f8526647b72"
+        ],
+        "context_info": [
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ],
+          [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+          ],
+          [
+            "",
+            "558268e0-96cb-48ba-b1b2-67fc5ff9550b"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ]
+        ],
+        "timestamp": 1781299970.692252,
+        "metadata": {
+          "changes": "Change 1: Modified function `custom_kernel`: Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8 for H100.",
+          "parent_metrics": {
+            "combined_score": 9991.806718490838,
+            "geomean_us": 100.082,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+        "solution": "# EVOLVE-BLOCK-START\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(rgb_ptr, out_ptr, n_pixels, BLOCK_SIZE: tl.constexpr):\n    \"\"\"HWC contiguous float32: pixel i has R@3i, G@3i+1, B@3i+2. Stride-3 loads, coalesced output.\"\"\"\n    pid = tl.program_id(0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n    tl.store(out_ptr + offsets, r * 0.2989 + g * 0.5870 + b * 0.1140, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Grayscale Y=0.2989R+0.5870G+0.1140B via Triton HWC kernel, BLOCK_SIZE=1024, num_warps=8.\"\"\"\n    rgb, output = data\n    n_pixels = rgb.shape[0] * rgb.shape[1]\n    BLOCK_SIZE = 1024\n    grayscale_kernel_hwc[(triton.cdiv(n_pixels, BLOCK_SIZE),)](\n        rgb.contiguous(), output, n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE, num_warps=8,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10120.228312350728,
+          "geomean_us": 98.812,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 17,
+        "parent_id": "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+        "other_context_ids": [
+          "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+          "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+          "2518d513-60ab-480a-8784-92f49429a762",
+          "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+        ],
+        "parent_info": [
+          "",
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+        ],
+        "context_info": [
+          [
+            "",
+            "558268e0-96cb-48ba-b1b2-67fc5ff9550b"
+          ],
+          [
+            "",
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ],
+          [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513"
+          ]
+        ],
+        "timestamp": 1781299995.3691654,
+        "metadata": {
+          "changes": "Change 1: Renamed function `grayscale_kernel` \u2192 `grayscale_kernel_hwc`",
+          "parent_metrics": {
+            "combined_score": 9744.404275844596,
+            "geomean_us": 102.623,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100. Uses BLOCK_SIZE=2048, num_warps=8, num_stages=3 for H100 bandwidth saturation.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=8,\n        num_stages=3,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10184.02533785504,
+          "geomean_us": 98.193,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 18,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "2518d513-60ab-480a-8784-92f49429a762",
+          "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ],
+          [
+            "",
+            "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ]
+        ],
+        "timestamp": 1781300025.7225873,
+        "metadata": {
+          "changes": "Change 1: Modified function `custom_kernel`: Launch optimized grayscale kernel using HWC fast path on H100. Uses BLOCK_SIZE=2048, num_warps=8, num_stages=3 for H100 bandwidth saturation.",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "8869a6dd-9888-4df7-beb2-c5434bc792c0",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=8,\n        num_stages=4,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10248.001639680262,
+          "geomean_us": 97.58,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 19,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+          "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "3feb2104-2181-46d3-b20a-4e0fa814eb14"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "791cb5d3-c6b8-41d4-b05d-7f8526647b72"
+          ],
+          [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe"
+          ]
+        ],
+        "timestamp": 1781300042.1097226,
+        "metadata": {
+          "changes": "Change 1: Near `rgb_c = rgb.contiguous()...` (8\u219210 lines)",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "7381ac6b-3b93-42fd-bafa-177abb6e34f0",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100. BLOCK_SIZE=2048, num_warps=16, num_stages=4.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    assert C == 3\n    n_pixels = H * W\n    BLOCK_SIZE = 2048\n\n    rgb_c = rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=16,\n        num_stages=4,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10096.726641222915,
+          "geomean_us": 99.042,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 20,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+          "2518d513-60ab-480a-8784-92f49429a762",
+          "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+          "3feb2104-2181-46d3-b20a-4e0fa814eb14"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e"
+          ],
+          [
+            "",
+            "2518d513-60ab-480a-8784-92f49429a762"
+          ],
+          [
+            "",
+            "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b"
+          ],
+          [
+            "",
+            "3feb2104-2181-46d3-b20a-4e0fa814eb14"
+          ]
+        ],
+        "timestamp": 1781300071.9878056,
+        "metadata": {
+          "changes": "Change 1: Modified function `custom_kernel`: Launch optimized grayscale kernel using HWC fast path on H100. BLOCK_SIZE=2048, num_warps=16, num_stages=4.",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      },
+      {
+        "id": "3e80d3eb-5443-419d-8d8f-5d3042c05d12",
+        "solution": "# EVOLVE-BLOCK-START\n\"\"\"\nOptimized Grayscale kernel for H100.\nY = 0.2989 R + 0.5870 G + 0.1140 B\nUses vectorized loads in HWC contiguous layout: pixel i has R at 3*i, G at 3*i+1, B at 3*i+2.\nAvoids integer division (no h_idx/w_idx), minimal arithmetic overhead.\nBLOCK_SIZE=1024 tuned for H100 warp occupancy and L2 cache efficiency.\n\"\"\"\n\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef grayscale_kernel_hwc(\n    rgb_ptr, out_ptr,\n    n_pixels,\n    BLOCK_SIZE: tl.constexpr,\n):\n    \"\"\"\n    Fast path kernel for contiguous HWC float32 layout on H100.\n    Loads R, G, B with stride-3 access pattern (no div/mod needed).\n    Each block processes BLOCK_SIZE pixels with coalesced output writes.\n    \"\"\"\n    pid = tl.program_id(0)\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_pixels\n\n    base = offsets * 3\n    r = tl.load(rgb_ptr + base,     mask=mask, other=0.0)\n    g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)\n    b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)\n\n    gray = r * 0.2989 + g * 0.5870 + b * 0.1140\n\n    tl.store(out_ptr + offsets, gray, mask=mask)\n\n\ndef custom_kernel(data):\n    \"\"\"Launch optimized grayscale kernel using HWC fast path on H100. BLOCK_SIZE=1024, num_warps=8 for H100 bandwidth saturation.\"\"\"\n    rgb, output = data\n    H, W, C = rgb.shape\n    n_pixels = H * W\n    BLOCK_SIZE = 1024\n\n    rgb_c = rgb if rgb.is_contiguous() else rgb.contiguous()\n    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)\n    grayscale_kernel_hwc[grid](\n        rgb_c, output,\n        n_pixels,\n        BLOCK_SIZE=BLOCK_SIZE,\n        num_warps=8,\n        num_stages=4,\n    )\n    return output\n# EVOLVE-BLOCK-END\n",
+        "language": "python",
+        "metrics": {
+          "combined_score": 10228.400175928484,
+          "geomean_us": 97.767,
+          "pass_rate": 1.0
+        },
+        "iteration_found": 21,
+        "parent_id": "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+        "other_context_ids": [
+          "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+          "45b4fd93-8945-49f2-b259-670fb62a17f8",
+          "3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6",
+          "791cb5d3-c6b8-41d4-b05d-7f8526647b72"
+        ],
+        "parent_info": [
+          "",
+          "e0ac92ae-7936-4fcc-a9c0-979bd44c9745"
+        ],
+        "context_info": [
+          [
+            "",
+            "3feb2104-2181-46d3-b20a-4e0fa814eb14"
+          ],
+          [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8"
+          ],
+          [
+            "",
+            "3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6"
+          ],
+          [
+            "",
+            "791cb5d3-c6b8-41d4-b05d-7f8526647b72"
+          ]
+        ],
+        "timestamp": 1781300089.0239725,
+        "metadata": {
+          "changes": "Change 1: Modified function `custom_kernel`: Launch optimized grayscale kernel using HWC fast path on H100. BLOCK_SIZE=1024, num_warps=8 for H100 bandwidth saturation.",
+          "parent_metrics": {
+            "combined_score": 10124.839268176618,
+            "geomean_us": 98.767,
+            "pass_rate": 1.0
+          }
+        },
+        "artifacts": {},
+        "prompts": null,
+        "generation": 0
+      }
+    ],
+    "population_size": 22,
+    "solution_score_summary": {
+      "best": 10542.740269050732,
+      "q75": 10135.255390840879,
+      "q50": 10074.028662005196,
+      "q25": 9975.59258653993,
+      "worst": 9715.812484819044,
+      "score_tiers": {
+        "top": {
+          "threshold": "score >= 10135.2554",
+          "pct_programs": 22.727272727272727
+        },
+        "upper_mid": {
+          "threshold": "10074.0287 <= score < 10135.2554",
+          "pct_programs": 27.27272727272727
+        },
+        "lower_mid": {
+          "threshold": "9975.5926 <= score < 10074.0287",
+          "pct_programs": 27.27272727272727
+        },
+        "bottom": {
+          "threshold": "score < 9975.5926",
+          "pct_programs": 22.727272727272727
+        }
+      },
+      "unique_scores": 22
+    },
+    "avg_solutions_per_parent": 2.625,
+    "top_solution_scores": [
+      10542.740269050732,
+      10248.001639680262,
+      10228.400175928484,
+      10184.02533785504,
+      10138.800174387363,
+      10134.073796325385,
+      10124.839268176618,
+      10120.228312350728,
+      10096.726641222915,
+      10092.956125919722,
+      10092.854259184498,
+      10055.203064825895,
+      10024.560172422436,
+      10019.83928177792,
+      10009.008107296568,
+      9991.806718490838,
+      9989.411224102452,
+      9934.13667385236,
+      9784.161399526447,
+      9744.404275844596
+    ],
+    "recent_solution_stats": {
+      "num_recent_iterations": 22,
+      "execution_trace": [
+        {
+          "iteration": 0,
+          "program": [
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "parent": null,
+          "context": null
+        },
+        {
+          "iteration": 1,
+          "program": [
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "parent": [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "context": null
+        },
+        {
+          "iteration": 2,
+          "program": [
+            "45b4fd93-8945-49f2-b259-670fb62a17f8",
+            9989.411224102452
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ]
+          ]
+        },
+        {
+          "iteration": 3,
+          "program": [
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "parent": [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "context": [
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        },
+        {
+          "iteration": 4,
+          "program": [
+            "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+            9715.812484819044
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        },
+        {
+          "iteration": 5,
+          "program": [
+            "927ec2ef-91a5-4f59-a0d9-81378e679893",
+            10024.560172422436
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ]
+          ]
+        },
+        {
+          "iteration": 6,
+          "program": [
+            "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+            10055.203064825895
+          ],
+          "parent": [
+            "",
+            "927ec2ef-91a5-4f59-a0d9-81378e679893",
+            10024.560172422436
+          ],
+          "context": [
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ]
+          ]
+        },
+        {
+          "iteration": 7,
+          "program": [
+            "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+            9934.13667385236
+          ],
+          "parent": [
+            "",
+            "927ec2ef-91a5-4f59-a0d9-81378e679893",
+            10024.560172422436
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ]
+          ]
+        },
+        {
+          "iteration": 8,
+          "program": [
+            "2518d513-60ab-480a-8784-92f49429a762",
+            10092.956125919722
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ]
+          ]
+        },
+        {
+          "iteration": 9,
+          "program": [
+            "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+            9738.236210657526
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "927ec2ef-91a5-4f59-a0d9-81378e679893",
+              10024.560172422436
+            ]
+          ]
+        },
+        {
+          "iteration": 10,
+          "program": [
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+            10019.83928177792
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+              9738.236210657526
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ]
+          ]
+        },
+        {
+          "iteration": 11,
+          "program": [
+            "a37ef553-9845-43f4-883f-9204922ffe84",
+            10092.854259184498
+          ],
+          "parent": [
+            "",
+            "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+            9784.161399526447
+          ],
+          "context": [
+            [
+              "",
+              "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+              10019.83928177792
+            ],
+            [
+              "",
+              "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+              9934.13667385236
+            ],
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ]
+          ]
+        },
+        {
+          "iteration": 12,
+          "program": [
+            "cb59e75f-bb4f-485a-8348-0c449019c988",
+            10009.008107296568
+          ],
+          "parent": [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+            10019.83928177792
+          ],
+          "context": [
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+              9738.236210657526
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ]
+          ]
+        },
+        {
+          "iteration": 13,
+          "program": [
+            "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+            9991.806718490838
+          ],
+          "parent": [
+            "",
+            "a37ef553-9845-43f4-883f-9204922ffe84",
+            10092.854259184498
+          ],
+          "context": [
+            [
+              "",
+              "cb59e75f-bb4f-485a-8348-0c449019c988",
+              10009.008107296568
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ],
+            [
+              "",
+              "b0be2132-114e-4a54-8806-c3e9b4724bf6",
+              10055.203064825895
+            ]
+          ]
+        },
+        {
+          "iteration": 14,
+          "program": [
+            "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+            10134.073796325385
+          ],
+          "parent": [
+            "",
+            "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+            10019.83928177792
+          ],
+          "context": [
+            [
+              "",
+              "cb59e75f-bb4f-485a-8348-0c449019c988",
+              10009.008107296568
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "a37ef553-9845-43f4-883f-9204922ffe84",
+              10092.854259184498
+            ]
+          ]
+        },
+        {
+          "iteration": 15,
+          "program": [
+            "fe27483f-e484-43e7-bbff-edac04287d6d",
+            10542.740269050732
+          ],
+          "parent": [
+            "",
+            "45b4fd93-8945-49f2-b259-670fb62a17f8",
+            9989.411224102452
+          ],
+          "context": [
+            [
+              "",
+              "a37ef553-9845-43f4-883f-9204922ffe84",
+              10092.854259184498
+            ],
+            [
+              "",
+              "cb59e75f-bb4f-485a-8348-0c449019c988",
+              10009.008107296568
+            ],
+            [
+              "",
+              "e9ebfb73-b6c0-4236-abfa-21cb6ae78296",
+              9738.236210657526
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        },
+        {
+          "iteration": 16,
+          "program": [
+            "1f50c08a-f2ef-4aad-bb17-2d514214972f",
+            10138.800174387363
+          ],
+          "parent": [
+            "",
+            "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+            9991.806718490838
+          ],
+          "context": [
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ],
+            [
+              "",
+              "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+              10124.839268176618
+            ],
+            [
+              "",
+              "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+              10134.073796325385
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ]
+          ]
+        },
+        {
+          "iteration": 17,
+          "program": [
+            "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+            10120.228312350728
+          ],
+          "parent": [
+            "",
+            "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+            9744.404275844596
+          ],
+          "context": [
+            [
+              "",
+              "558268e0-96cb-48ba-b1b2-67fc5ff9550b",
+              10134.073796325385
+            ],
+            [
+              "",
+              "d042fce9-fea9-4b8a-bc4d-2910121d2e0e",
+              9715.812484819044
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ],
+            [
+              "",
+              "0e1a9b11-7da8-4d40-be9a-c390c3f8c513",
+              10019.83928177792
+            ]
+          ]
+        },
+        {
+          "iteration": 18,
+          "program": [
+            "3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6",
+            10184.02533785504
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ],
+            [
+              "",
+              "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+              9934.13667385236
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ]
+          ]
+        },
+        {
+          "iteration": 19,
+          "program": [
+            "8869a6dd-9888-4df7-beb2-c5434bc792c0",
+            10248.001639680262
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+              10120.228312350728
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+              9991.806718490838
+            ],
+            [
+              "",
+              "c7f8ae5d-8549-47d7-8fc5-5a1882c1dcbe",
+              9784.161399526447
+            ]
+          ]
+        },
+        {
+          "iteration": 20,
+          "program": [
+            "7381ac6b-3b93-42fd-bafa-177abb6e34f0",
+            10096.726641222915
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "5093bc66-1878-4376-a797-ff0d5cd75b1e",
+              9744.404275844596
+            ],
+            [
+              "",
+              "2518d513-60ab-480a-8784-92f49429a762",
+              10092.956125919722
+            ],
+            [
+              "",
+              "bf0317eb-4f7d-42bd-b7af-ad5b4f81821b",
+              9934.13667385236
+            ],
+            [
+              "",
+              "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+              10120.228312350728
+            ]
+          ]
+        },
+        {
+          "iteration": 21,
+          "program": [
+            "3e80d3eb-5443-419d-8d8f-5d3042c05d12",
+            10228.400175928484
+          ],
+          "parent": [
+            "",
+            "e0ac92ae-7936-4fcc-a9c0-979bd44c9745",
+            10124.839268176618
+          ],
+          "context": [
+            [
+              "",
+              "3feb2104-2181-46d3-b20a-4e0fa814eb14",
+              10120.228312350728
+            ],
+            [
+              "",
+              "45b4fd93-8945-49f2-b259-670fb62a17f8",
+              9989.411224102452
+            ],
+            [
+              "",
+              "3b99a8f7-e00b-4e28-ab2b-315de9ff2bf6",
+              10184.02533785504
+            ],
+            [
+              "",
+              "791cb5d3-c6b8-41d4-b05d-7f8526647b72",
+              9991.806718490838
+            ]
+          ]
+        }
+      ],
+      "score_trajectory": [
+        9744.404275844596,
+        9784.161399526447,
+        9989.411224102452,
+        10124.839268176618,
+        9715.812484819044,
+        10024.560172422436,
+        10055.203064825895,
+        9934.13667385236,
+        10092.956125919722,
+        9738.236210657526,
+        10019.83928177792,
+        10092.854259184498,
+        10009.008107296568,
+        9991.806718490838,
+        10134.073796325385,
+        10542.740269050732,
+        10138.800174387363,
+        10120.228312350728,
+        10184.02533785504,
+        10248.001639680262,
+        10096.726641222915,
+        10228.400175928484
+      ],
+      "parent_scores": [
+        null,
+        9744.404275844596,
+        9784.161399526447,
+        9744.404275844596,
+        10124.839268176618,
+        9784.161399526447,
+        10024.560172422436,
+        10024.560172422436,
+        9784.161399526447,
+        10124.839268176618,
+        9784.161399526447,
+        9784.161399526447,
+        10019.83928177792,
+        10092.854259184498,
+        10019.83928177792,
+        9989.411224102452,
+        9991.806718490838,
+        9744.404275844596,
+        10124.839268176618,
+        10124.839268176618,
+        10124.839268176618,
+        10124.839268176618
+      ],
+      "iterations_without_improvement": 6,
+      "improvement_threshold": 0.1,
+      "most_reused_parent_ratio": 0.2857142857142857,
+      "most_reused_parent_score": 10124.839268176618,
+      "most_reused_context_ratio": 0.55,
+      "most_reused_context_score": 9989.411224102452
+    }
+  }
+}

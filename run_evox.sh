@@ -5,10 +5,11 @@
 
 set -uo pipefail
 
-TARGET_LOW=85.0
+TARGET_LOW=95.0
 TARGET_HIGH=108.0
 MAX_ATTEMPTS=10
 RUN_BASE="grayscale/skydiscover_runs"
+PYTHON=".venv/bin/python"
 
 set -a
 source .env
@@ -24,7 +25,7 @@ while [ "$attempt" -lt "$MAX_ATTEMPTS" ]; do
 
     BASELINE_JSON=$(mktemp /tmp/baseline_XXXXXX.json)
 
-    if ! python3.13 grayscale/run_eval.py grayscale/starting_point.py \
+    if ! $PYTHON grayscale/run_eval.py grayscale/starting_point.py \
             -o "$BASELINE_JSON" --mode leaderboard; then
         echo "  Baseline eval failed — retrying in 20s..."
         rm -f "$BASELINE_JSON"
@@ -32,7 +33,7 @@ while [ "$attempt" -lt "$MAX_ATTEMPTS" ]; do
         continue
     fi
 
-    PARSE=$(python3.13 -c "
+    PARSE=$($PYTHON -c "
 import json, re
 md = json.load(open('$BASELINE_JSON'))
 gm = re.search(r'Geometric mean: ⏱ ([\d.]+)', md)
@@ -48,7 +49,7 @@ print(gpu.group(1) if gpu else 'unknown')
     echo "  GPU         : $GPU_NAME"
     echo "  Geomean     : ${GEOMEAN} µs   (target: ${TARGET_LOW}–${TARGET_HIGH} µs)"
 
-    IN_RANGE=$(python3.13 -c "
+    IN_RANGE=$($PYTHON -c "
 g = float('$GEOMEAN')
 print('yes' if $TARGET_LOW <= g <= $TARGET_HIGH else 'no')
 ")
@@ -66,7 +67,7 @@ print('yes' if $TARGET_LOW <= g <= $TARGET_HIGH else 'no')
 
         tmux send-keys -t evox-grayscale \
             "cd /workspace/grayscale-openevolve && set -a && source .env && set +a && \
-skydiscover-run \
+.venv/bin/skydiscover-run \
   grayscale/starting_point.py \
   grayscale/skydiscover_evaluator.py \
   --config grayscale/skydiscover_config.yaml \

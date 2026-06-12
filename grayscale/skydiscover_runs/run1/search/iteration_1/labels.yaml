@@ -1,0 +1,81 @@
+iteration: 1
+diverge_label_length: 3179
+refine_label_length: 2645
+
+diverge_label: |
+  ## IMPORTANT: YOU MUST FOLLOW THE FOLLOWING IN YOUR GENERATION, OTHERWISE THE SOLUTION WILL BE REJECTED.
+  
+  ### Goal
+  You MUST USE a FUNDAMENTALLY DIFFERENT APPROACH to the following code, NOT JUST parameter tweaks or local changes.
+  This may mean using different solver, function, or library, a different algorithm, or a different method entirely; or adding new components that have never been used before.
+  You can replace partial or the entire code if needed (i.e., rewrite a simpler solution from scratch), or build upon / complement it.
+  Think through what is needed to achieve a BREAKTHROUGH SCORE.
+  
+  **Tools Available:**
+  You have access to a list of libraries. Use these tools to your advantage.
+  - Choose library functions appropriate to the problem's structure and constraints.
+  - Feel free to break from the existing code entirely — focus on correct library usage for the problem, not on preserving the current code's structure.
+  - **Prioritize libraries and functions not already used by the parent program.** Adding new components or changing how existing ones are combined is fine, but prefer approaches that introduce something the parent has never tried.
+  
+  **CRITICAL: IF A LIBRARY EXISTS FOR AN ALGORITHM, USE IT. DO NOT REIMPLEMENT MANUALLY. SEE THE EXAMPLES BELOW FOR RELEVANT LIBRARIES.**
+  
+  ### Examples
+  EXAMPLES OF DIFFERENT approaches (NOT LIMITED TO, PROPOSE YOUR OWN):
+  
+  - **Libraries / Triton primitives**: `triton.language: load, store, dot` with vectorized types (tl.float16, tl.bfloat16) ↔ `torch: torch.compile` with custom fusion ↔ raw CUDA via `torch.utils.cpp_extension` for maximum control
+  
+  - **Vectorized memory access width**: Load 1 element/thread (scalar) ↔ load 4 elements/thread via `tl.load` with stride tricks (int4/float4 equivalent) ↔ load 8+ elements/thread using wider offsets and coalesced 128-byte transactions ↔ use `tl.make_block_ptr` for 2D tiled access
+  
+  - **BLOCK_SIZE strategy**: Small blocks (64–256) for L1 cache fit ↔ large blocks (512–2048) for maximum memory throughput ↔ 2D tile shapes (BLOCK_M × BLOCK_N) to exploit spatial locality ↔ warp-level granularity matching H100 warp size (32 threads)
+  
+  - **Data layout & dtype exploitation**: Process RGB in AoS (interleaved R,G,B) with stride-3 loads ↔ pre-transpose to SoA (planar R, G, B) for coalesced loads ↔ operate in float16/bfloat16 to double effective bandwidth ↔ use integer arithmetic (fixed-point coefficients) to avoid FP overhead
+  
+  - **Kernel fusion & pipeline**: Single-pass kernel reading interleaved RGB and writing grayscale directly ↔ two-pass: reformat to planar then convert ↔ fuse with downstream ops (normalization, resize) if evaluator allows ↔ use software pipelining (`tl.multiple_of`, prefetch hints) to hide memory latency
+  
+  - **Parallelism decomposition**: 1D grid over flat pixel index ↔ 2D grid (row × col tiles) to match image geometry ↔ persistent kernel with work-stealing across SM for load balance ↔ multi-stream execution for different image sizes
+  
+  ---
+  
+  ### Output
+  Your solution MUST still be VALID / CORRECT for the same problem. A broken "creative" solution is worthless.
+  
+  Format:
+  1. APPROACH: Describe your different approach.
+  2. CODE: Implementation.
+
+refine_label: |
+  ## IMPORTANT: YOU MUST FOLLOW THE FOLLOWING IN YOUR GENERATION, OTHERWISE THE SOLUTION WILL BE REJECTED.
+  
+  ### Goal
+  You should keep the same fundamental approach and algorithm structure.
+  DO NOT switch to a different problem formulation.
+  Focus on REFINING / EXPLOITING the current approach: better inputs, additional polish, etc.
+  Think through what is needed to SQUEEZE the last few percent of performance.
+  Use sufficient computational budget for refinement.
+  
+  **Tools Available:**
+  You have access to a list of libraries. Use these tools to your advantage.
+  - Choose library functions appropriate to the problem's structure and constraints.
+  - Feel free to break from the existing code entirely — focus on correct library usage for the problem, not on preserving the current code's structure.
+  
+  **CRITICAL: IF A LIBRARY EXISTS FOR AN ALGORITHM, USE IT. DO NOT REIMPLEMENT MANUALLY. SEE THE EXAMPLES BELOW FOR RELEVANT LIBRARIES.**
+  
+  ### Examples
+  EXAMPLES OF REFINEMENT strategies (NOT LIMITED TO, PROPOSE YOUR OWN):
+  
+  - **BLOCK_SIZE sweep**: Exhaustively try powers-of-2 from 128 to 4096; profile which minimizes geometric mean latency across all image sizes ↔ use non-power-of-2 blocks (e.g., 192, 384) if alignment allows ↔ tune separately for small vs large images and pick best universal value
+  
+  - **Vectorization width tuning**: Increase elements-per-thread from 4 → 8 → 16 to saturate H100 memory bandwidth (3.35 TB/s) ↔ ensure offset alignment to 128-byte cache lines ↔ add `tl.multiple_of(ptr, 16)` hints to let Triton emit vectorized ldg.128 instructions
+  
+  - **Arithmetic precision & coefficient encoding**: Use fused multiply-add (`tl.fma` or rely on Triton auto-fusion) ↔ precompute coefficients as compile-time `tl.constexpr` to avoid register pressure ↔ try bfloat16 intermediate accumulation to halve arithmetic cost ↔ fixed-point integer multiply-shift if output is uint8
+  
+  - **Launch configuration polish**: Tune `num_warps` (2, 4, 8, 16) to match occupancy for H100 SM ↔ set `num_stages` (2–5) for software pipelining depth ↔ add `@triton.jit` with `maxnreg` hint to control register spilling ↔ warm-up kernel before timing to amortize JIT compilation
+  
+  - **Memory access annotations**: Add `tl.multiple_of` and `tl.max_contiguous` on pointer offsets to guarantee coalescing ↔ mark output pointer as `evict_last=False` to avoid cache pollution ↔ use `cache_modifier='.cg'` (cache global) for streaming write pattern on large tensors
+  
+  ### Output
+  Your solution MUST still be VALID / CORRECT for the same problem. A broken solution is worthless.
+  
+  Format:
+  1. REFINEMENT: Describe what you are refining.
+  2. CODE: Implementation with refinement.
