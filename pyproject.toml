@@ -7,4 +7,5 @@ dependencies = [
     "skydiscover>=0.1.0",
     "modal>=0.73.0",
     "python-dotenv>=1.0.0",
+    "matplotlib>=3.11.0",
 ]
