@@ -16,13 +16,31 @@ class EvolvedProgram(Program):
 class EvolvedProgramDatabase(ProgramDatabase):
     """Initial search strategy database."""
 
+    DIVERGE_LABEL = "diverge"
+    REFINE_LABEL = "refine"
+
     def __init__(self, name: str, config: DatabaseConfig):
         super().__init__(name, config)
         self.initial_program = None
+        self._sample_count = 0
 
         if config.random_seed is not None:
             random.seed(config.random_seed)
             logger.debug(f"Database: Set random seed to {config.random_seed}")
+
+    def _score_of(self, program) -> float:
+        """Extract a comparable scalar score from a program, defaulting to 0.0."""
+        for attr in ("combined_score", "score"):
+            val = getattr(program, attr, None)
+            if isinstance(val, (int, float)):
+                return float(val)
+        metrics = getattr(program, "metrics", None)
+        if isinstance(metrics, dict):
+            for key in ("combined_score", "score"):
+                v = metrics.get(key)
+                if isinstance(v, (int, float)):
+                    return float(v)
+        return 0.0
 
     def add(self, program: EvolvedProgram, iteration: Optional[int] = None, **kwargs) -> str:
         """Add a program to the database."""
@@ -48,26 +66,76 @@ class EvolvedProgramDatabase(ProgramDatabase):
         **kwargs
     ) -> Tuple[Dict[str, EvolvedProgram], Dict[str, List[EvolvedProgram]]]:
         """
-        Selects parent via tournament selection (best of 3) to exploit high-scoring
-        programs, and inspirations via uniform random sampling for diversity.
+        Fitness-aware sampling alternating REFINE (exploit best programs) and
+        DIVERGE (explore broadly). Parent selection is strongly biased toward
+        high-scoring programs via rank-weighting plus periodic elitism, with
+        occasional broad picks to escape local optima. Inspirations combine top
+        quality anchors with diverse random picks to keep variety.
         """
         candidates = list(self.programs.values())
-        
+
         if len(candidates) == 0:
             raise ValueError("No candidates available for sampling")
 
-        # Tournament selection: pick best of k random candidates as parent
-        k = min(3, len(candidates))
-        tournament = random.sample(candidates, k)
-        parent = max(tournament, key=lambda p: getattr(p, 'combined_score', 0.0) or 0.0)
+        self._sample_count += 1
 
-        # Random diverse inspirations (excluding parent)
-        others = [p for p in candidates if p.id != parent.id]
-        sample_size = min(num_inspirations, len(others))
-        examples = random.sample(others, sample_size) if sample_size > 0 else []
+        scored = sorted(candidates, key=self._score_of, reverse=True)
+        n = len(scored)
 
-        parent_dict = {"": parent}
-        inspiration_programs_dict = {"": examples}
+        # Strong refinement bias: exploiting proven-good regions yields steady gains.
+        refine_mode = random.random() < 0.78
+        mode_label = self.REFINE_LABEL if refine_mode else self.DIVERGE_LABEL
+
+        # ----- Parent selection -----
+        r = random.random()
+        if refine_mode:
+            if r < 0.40:
+                # Elitism: directly refine the current best.
+                parent = scored[0]
+            elif r < 0.92:
+                # Rank-weighted selection strongly favoring top programs.
+                weights = [(n - i) ** 2 for i in range(n)]
+                parent = random.choices(scored, weights=weights, k=1)[0]
+            else:
+                parent = random.choice(scored)
+        else:
+            # Diverge: probe more broadly, including under-explored programs.
+            if r < 0.5:
+                parent = random.choice(scored)
+            else:
+                lower = scored[n // 2:] if n > 1 else scored
+                parent = random.choice(lower)
+
+        # ----- Inspiration selection -----
+        pool = [p for p in scored if p.id != parent.id]
+        k = min(num_inspirations or 0, len(pool))
+
+        examples: List[EvolvedProgram] = []
+        chosen_ids = set()
+
+        if k > 0:
+            # Anchor with top performers; more anchors when refining.
+            num_top = max(1, (k + 1) // 2) if refine_mode else max(1, k // 3)
+            for p in pool[:num_top]:
+                if p.id not in chosen_ids:
+                    examples.append(p)
+                    chosen_ids.add(p.id)
+                if len(examples) >= num_top:
+                    break
+
+            # Fill remainder with diverse random picks.
+            remaining_pool = [p for p in pool if p.id not in chosen_ids]
+            random.shuffle(remaining_pool)
+            for p in remaining_pool:
+                if len(examples) >= k:
+                    break
+                examples.append(p)
+                chosen_ids.add(p.id)
+
+            examples = examples[:k]
+
+        parent_dict = {mode_label: parent}
+        inspiration_programs_dict = {mode_label: examples}
 
         return parent_dict, inspiration_programs_dict
 

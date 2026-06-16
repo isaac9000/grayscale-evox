@@ -1,0 +1,822 @@
+2026-06-16 21:29:37,343 - skydiscover.search.utils.logging_utils - INFO - Logging to grayscale/skydiscover_runs/run1/logs/evox_20260616_212937.log
+2026-06-16 21:29:39,977 - skydiscover.search.main_controller - INFO - Set random seed to 42 for reproducibility
+2026-06-16 21:29:40,090 - skydiscover.search.main_controller - INFO - Initialized discovery process with search strategy = evox and initial program = grayscale/starting_point.py
+2026-06-16 21:29:43,033 - skydiscover.llm - INFO - Initialized Anthropic LLM with model: claude-opus-4-8
+2026-06-16 21:29:43,037 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-opus-4-8 (weight: 1.00)
+2026-06-16 21:29:43,068 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-opus-4-8 (weight: 1.00)
+2026-06-16 21:29:43,098 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-opus-4-8 (weight: 1.00)
+2026-06-16 21:29:43,277 - skydiscover.prompt.default.prompt - INFO - Initialized default context builder
+2026-06-16 21:29:43,372 - skydiscover.prompt.default.prompt - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-06-16 21:29:43,387 - skydiscover.evaluation.evaluator - INFO - Initialized evaluator with grayscale/skydiscover_evaluator.py
+2026-06-16 21:29:43,388 - skydiscover.search.default_discovery_manager - INFO - DiscoveryManager initialized: num_inspirations=4
+2026-06-16 21:29:43,462 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-opus-4-8 (weight: 1.00)
+2026-06-16 21:29:43,489 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-opus-4-8 (weight: 1.00)
+2026-06-16 21:29:43,521 - skydiscover.llm - INFO - Initialized LLM pool with models: claude-opus-4-8 (weight: 1.00)
+2026-06-16 21:29:43,769 - skydiscover.prompt.default.prompt - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-06-16 21:29:43,851 - skydiscover.evaluation.evaluator - INFO - Initialized evaluator with /workspace/grayscale-evox/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/search_strategy_evaluator.py
+2026-06-16 21:29:43,854 - skydiscover.search.default_discovery_manager - INFO - DiscoveryManager initialized: num_inspirations=4
+2026-06-16 21:29:43,859 - skydiscover.search.evox.coevolve_manager - INFO - ======================================================================
+2026-06-16 21:29:43,862 - skydiscover.search.evox.coevolve_manager - INFO - [EVOX CO-EVOLUTION SETUP]
+2026-06-16 21:29:43,866 - skydiscover.search.evox.coevolve_manager - INFO - ----------------------------------------------------------------------
+2026-06-16 21:29:43,869 - skydiscover.search.evox.coevolve_manager - INFO -   [SOLUTION EVOLUTION]
+2026-06-16 21:29:43,874 - skydiscover.search.evox.coevolve_manager - INFO -     Initial search strategy file : /workspace/grayscale-evox/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/initial_search_strategy.py
+2026-06-16 21:29:43,879 - skydiscover.search.evox.coevolve_manager - INFO -     Solution database class      : EvolvedProgramDatabase
+2026-06-16 21:29:43,882 - skydiscover.search.evox.coevolve_manager - INFO -   [META EVOLUTION OF SEARCH STRATEGY]
+2026-06-16 21:29:43,886 - skydiscover.search.evox.coevolve_manager - INFO -     Search strategy database class: TopKDatabase
+2026-06-16 21:29:43,890 - skydiscover.search.evox.coevolve_manager - INFO -     Search strategy evaluator     : /workspace/grayscale-evox/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/search_strategy_evaluator.py
+2026-06-16 21:29:43,894 - skydiscover.search.evox.coevolve_manager - INFO -     Search strategy config        : /workspace/grayscale-evox/.venv/lib/python3.11/site-packages/skydiscover/search/evox/config/search.yaml
+2026-06-16 21:29:43,899 - skydiscover.search.evox.coevolve_manager - INFO - ======================================================================
+2026-06-16 21:29:43,930 - skydiscover.search.main_controller - INFO - Adding initial program to database
+2026-06-16 21:29:43,934 - root - INFO - Evaluating program 6e1c2ab6-8af9-49ab-aa7e-f87dfe9718ba
+2026-06-16 21:29:50,808 - skydiscover.evaluation.evaluator - INFO - Evaluated program 6e1c2ab6-8af9-49ab-aa7e-f87dfe9718ba in 6.87s: combined_score=10716.2759, geomean_us=93.3160, pass_rate=1.0000
+2026-06-16 21:29:50,818 - skydiscover.search.route - INFO - Using search strategy from: /workspace/grayscale-evox/.venv/lib/python3.11/site-packages/skydiscover/search/evox/database/initial_search_strategy.py
+2026-06-16 21:29:50,840 - skydiscover.search.base_database - INFO - Database has 1 programs, best program score is 10716.275880
+2026-06-16 21:29:50,842 - skydiscover.search.evox.coevolve_manager - INFO - Switch if 2 iterations of stagnation detected
+2026-06-16 21:29:50,857 - skydiscover.search.evox.coevolve_manager - INFO - Label generation: using guide_model = [claude-opus-4-8]
+2026-06-16 21:30:12,501 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:30:12,540 - skydiscover.search.evox.coevolve_manager - INFO - Generated variation operator labels (2781/2033 chars)
+2026-06-16 21:30:26,757 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:30:26,762 - root - INFO - Evaluating program 101c4aa2-4163-432b-a297-93419aae1058
+2026-06-16 21:30:33,697 - skydiscover.evaluation.evaluator - INFO - Evaluated program 101c4aa2-4163-432b-a297-93419aae1058 in 6.94s: combined_score=10948.5854, geomean_us=91.3360, pass_rate=1.0000
+2026-06-16 21:30:33,699 - skydiscover.search.default_discovery_manager - INFO - Iteration 1: Program 101c4aa2-4163-432b-a297-93419aae1058 (parent: 6e1c2ab6-8af9-49ab-aa7e-f87dfe9718ba) completed in 21.16s
+2026-06-16 21:30:33,700 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10948.5854, geomean_us=91.3360, pass_rate=1.0000
+2026-06-16 21:30:33,717 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 1
+2026-06-16 21:30:47,233 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:30:47,246 - root - INFO - Evaluating program cc87ebaf-7c10-4335-a73e-88811cf6970c
+2026-06-16 21:30:59,627 - skydiscover.evaluation.evaluator - INFO - Evaluated program cc87ebaf-7c10-4335-a73e-88811cf6970c in 12.38s: combined_score=11050.8227, geomean_us=90.4910, pass_rate=1.0000
+2026-06-16 21:30:59,629 - skydiscover.search.default_discovery_manager - INFO - Iteration 2: Program cc87ebaf-7c10-4335-a73e-88811cf6970c (parent: 101c4aa2-4163-432b-a297-93419aae1058) completed in 25.91s
+2026-06-16 21:30:59,636 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11050.8227, geomean_us=90.4910, pass_rate=1.0000
+2026-06-16 21:30:59,640 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 2
+2026-06-16 21:31:13,748 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:31:13,752 - root - INFO - Evaluating program 1a57ed81-dcb1-4cf4-af5e-c7156b1b1983
+2026-06-16 21:31:20,432 - skydiscover.evaluation.evaluator - INFO - Evaluated program 1a57ed81-dcb1-4cf4-af5e-c7156b1b1983 in 6.68s: combined_score=11021.3484, geomean_us=90.7330, pass_rate=1.0000
+2026-06-16 21:31:20,434 - skydiscover.search.default_discovery_manager - INFO - Iteration 3: Program 1a57ed81-dcb1-4cf4-af5e-c7156b1b1983 (parent: 6e1c2ab6-8af9-49ab-aa7e-f87dfe9718ba) completed in 20.79s
+2026-06-16 21:31:20,435 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11021.3484, geomean_us=90.7330, pass_rate=1.0000
+2026-06-16 21:31:33,742 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:31:33,748 - root - INFO - Evaluating program be2ae77e-aa75-47e7-a3bc-b5627b790c86
+2026-06-16 21:31:42,066 - skydiscover.evaluation.evaluator - INFO - Evaluated program be2ae77e-aa75-47e7-a3bc-b5627b790c86 in 8.32s: combined_score=11014.0650, geomean_us=90.7930, pass_rate=1.0000
+2026-06-16 21:31:42,067 - skydiscover.search.default_discovery_manager - INFO - Iteration 4: Program be2ae77e-aa75-47e7-a3bc-b5627b790c86 (parent: 1a57ed81-dcb1-4cf4-af5e-c7156b1b1983) completed in 21.63s
+2026-06-16 21:31:42,070 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11014.0650, geomean_us=90.7930, pass_rate=1.0000
+2026-06-16 21:31:42,072 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=4)
+2026-06-16 21:31:42,074 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=2431.748671, improvement=334.546854, start=10716.275880, end=11050.822734, horizon=2
+2026-06-16 21:32:09,435 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:32:09,655 - root - INFO - Evaluating program 1b640112-867b-499e-b3d2-98b5179f6bf6
+2026-06-16 21:32:09,666 - skydiscover.evaluation.evaluator - INFO - Evaluated program 1b640112-867b-499e-b3d2-98b5179f6bf6 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-16 21:32:09,886 - skydiscover.search.evox.utils.coevolve_logging - INFO - Saved labels to grayscale/skydiscover_runs/run1/search/iteration_1/labels.yaml (2781/2033 chars)
+2026-06-16 21:32:09,892 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 1) - saved to /workspace/grayscale-evox/grayscale/skydiscover_runs/run1/search/iteration_1 (score pending)
+2026-06-16 21:32:09,903 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm 1b640112-867b-499e-b3d2-98b5179f6bf6 (5 programs migrated)
+2026-06-16 21:32:20,947 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:32:20,954 - root - INFO - Evaluating program cee53b69-10f5-4922-afcc-90f7085b030f
+2026-06-16 21:32:29,794 - skydiscover.evaluation.evaluator - INFO - Evaluated program cee53b69-10f5-4922-afcc-90f7085b030f in 8.84s: combined_score=0.0000, pass_rate=0.0000, error=correctness failed (0/4)
+2026-06-16 21:32:29,799 - skydiscover.search.default_discovery_manager - WARNING - Evaluation failed (attempt 1/3): validity=None, error=correctness failed (0/4)
+----- Generated Solution -----
+# EVOLVE-BLOCK-START
+"""
+Initial Grayscale submission with Triton kernel.
+Y = 0.2989 R + 0.5870 G + 0.1140 B
+"""
+
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def grayscale_kernel(
+    rgb_ptr, out_ptr,
+    n_pixels,
+    BLOCK_SIZE: tl.constexpr,
+):
+    """RGB->gray with fully coalesced contiguous loads.
+
+    Each program loads a contiguous block of 3*BLOCK_SIZE source elements
+    (the interleaved RGB stream) using three coalesced loads at consecutive
+    base offsets, then deinterleaves via strided indices to compute Y.
+    """
+    pid = tl.program_id(0)
+    block_start = pid * BLOCK_SIZE
+
+    # Fully contiguous load of 3*BLOCK_SIZE interleaved elements, then
+    # deinterleave in-register via a [BLOCK_SIZE, 3] view for coalescing.
+    row = tl.arange(0, BLOCK_SIZE)
+    col = tl.arange(0, 3)
+    pix = block_start + row
+    addr = pix[:, None] * 3 + col[None, :]
+    pmask = pix < n_pixels
+
+    vals = tl.load(rgb_ptr + addr, mask=pmask[:, None], other=0.0)
+    r = vals[:, 0]
+    g = vals[:, 1]
+    b = vals[:, 2]
+
+    gray = tl.fma(0.2989, r, tl.fma(0.5870, g, 0.1140 * b))
+
+    tl.store(out_ptr + pix, gray, mask=pmask)
+
+
+def custom_kernel(data):
+    """RGB->grayscale using flat contiguous loads for maximal coalescing.
+
+    Uses a larger BLOCK_SIZE and tuned warp/stage counts to saturate
+    H100 memory bandwidth for the bandwidth-bound conversion.
+    """
+    rgb, output = data
+    H, W, C = rgb.shape
+    rgb = rgb.contiguous()
+    n_pixels = H * W
+    BLOCK_SIZE = 4096
+    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)
+    grayscale_kernel[grid](
+        rgb, output, n_pixels,
+        BLOCK_SIZE=BLOCK_SIZE,
+        num_warps=8,
+        num_stages=3,
+    )
+    return output
+# EVOLVE-BLOCK-END
+
+--------------------------
+2026-06-16 21:32:29,802 - skydiscover.search.default_discovery_manager - INFO - Retry 2/3: rebuilding prompt with 1 failed attempt(s)
+2026-06-16 21:32:45,716 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:32:45,729 - root - INFO - Evaluating program 6fa9fcc1-5aff-4861-9330-c8a62700840d
+2026-06-16 21:32:53,695 - skydiscover.evaluation.evaluator - INFO - Evaluated program 6fa9fcc1-5aff-4861-9330-c8a62700840d in 7.97s: combined_score=5228.5668, geomean_us=191.2570, pass_rate=1.0000
+2026-06-16 21:32:53,699 - skydiscover.search.default_discovery_manager - INFO - Iteration 5: Program 6fa9fcc1-5aff-4861-9330-c8a62700840d (parent: cc87ebaf-7c10-4335-a73e-88811cf6970c) completed in 43.78s
+2026-06-16 21:32:53,720 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 5
+2026-06-16 21:32:53,724 - skydiscover.search.base_database - INFO - Database has 6 programs, best program score is 11050.822734
+2026-06-16 21:32:54,250 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 6 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_5
+2026-06-16 21:32:54,320 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 5 with metrics: combined_score=11050.8227, geomean_us=90.4910, pass_rate=1.0000
+2026-06-16 21:32:54,325 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 5 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_5
+2026-06-16 21:32:54,329 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=5228.5668, geomean_us=191.2570, pass_rate=1.0000
+2026-06-16 21:33:09,487 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:33:09,490 - root - INFO - Evaluating program c7f82f47-3454-4fd2-b2b9-feb776657d22
+2026-06-16 21:33:18,380 - skydiscover.evaluation.evaluator - INFO - Evaluated program c7f82f47-3454-4fd2-b2b9-feb776657d22 in 8.89s: combined_score=6235.5802, geomean_us=160.3700, pass_rate=1.0000
+2026-06-16 21:33:18,383 - skydiscover.search.default_discovery_manager - INFO - Iteration 7: Program c7f82f47-3454-4fd2-b2b9-feb776657d22 (parent: cc87ebaf-7c10-4335-a73e-88811cf6970c) completed in 24.05s
+2026-06-16 21:33:18,385 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=6235.5802, geomean_us=160.3700, pass_rate=1.0000
+2026-06-16 21:33:18,387 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=7)
+2026-06-16 21:33:18,389 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=11050.822734, end=11050.822734, horizon=2
+2026-06-16 21:33:41,091 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:33:41,095 - root - INFO - Evaluating program 42eab8ae-e307-4da2-b47e-1c8dd1140624
+2026-06-16 21:33:41,104 - skydiscover.evaluation.evaluator - INFO - Evaluated program 42eab8ae-e307-4da2-b47e-1c8dd1140624 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-16 21:33:41,184 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 2) - saved to /workspace/grayscale-evox/grayscale/skydiscover_runs/run1/search/iteration_2 (score pending)
+2026-06-16 21:33:41,194 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm 42eab8ae-e307-4da2-b47e-1c8dd1140624 (7 programs migrated)
+2026-06-16 21:33:52,154 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:33:52,160 - root - INFO - Evaluating program ddc3e74b-f069-4fb8-a846-da4278b0c4ec
+2026-06-16 21:34:03,086 - skydiscover.evaluation.evaluator - INFO - Evaluated program ddc3e74b-f069-4fb8-a846-da4278b0c4ec in 10.93s: combined_score=10511.7100, geomean_us=95.1320, pass_rate=1.0000
+2026-06-16 21:34:03,092 - skydiscover.search.default_discovery_manager - INFO - Iteration 8: Program ddc3e74b-f069-4fb8-a846-da4278b0c4ec (parent: cc87ebaf-7c10-4335-a73e-88811cf6970c) completed in 21.89s
+2026-06-16 21:34:03,099 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10511.7100, geomean_us=95.1320, pass_rate=1.0000
+2026-06-16 21:34:20,814 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:34:20,819 - root - INFO - Evaluating program 29c78e62-55f9-472e-8332-53bf434a223b
+2026-06-16 21:34:32,626 - skydiscover.evaluation.evaluator - INFO - Evaluated program 29c78e62-55f9-472e-8332-53bf434a223b in 11.81s: combined_score=6381.5395, geomean_us=156.7020, pass_rate=1.0000
+2026-06-16 21:34:32,632 - skydiscover.search.default_discovery_manager - INFO - Iteration 9: Program 29c78e62-55f9-472e-8332-53bf434a223b (parent: cc87ebaf-7c10-4335-a73e-88811cf6970c) completed in 29.51s
+2026-06-16 21:34:32,634 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=6381.5395, geomean_us=156.7020, pass_rate=1.0000
+2026-06-16 21:34:32,637 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=9)
+2026-06-16 21:34:32,640 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=11050.822734, end=11050.822734, horizon=2
+2026-06-16 21:34:52,733 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:34:52,740 - root - INFO - Evaluating program 6f590edf-4fe7-4aed-83f3-9b2c6bdf74f0
+2026-06-16 21:34:52,750 - skydiscover.evaluation.evaluator - INFO - Evaluated program 6f590edf-4fe7-4aed-83f3-9b2c6bdf74f0 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-16 21:34:52,852 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 3) - saved to /workspace/grayscale-evox/grayscale/skydiscover_runs/run1/search/iteration_3 (score pending)
+2026-06-16 21:34:52,861 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm 6f590edf-4fe7-4aed-83f3-9b2c6bdf74f0 (9 programs migrated)
+2026-06-16 21:35:07,602 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:35:07,624 - root - INFO - Evaluating program 49e9ceea-c8e0-47d6-b30b-82d10a76dc81
+2026-06-16 21:35:15,137 - skydiscover.evaluation.evaluator - INFO - Evaluated program 49e9ceea-c8e0-47d6-b30b-82d10a76dc81 in 7.51s: combined_score=11143.4270, geomean_us=89.7390, pass_rate=1.0000
+2026-06-16 21:35:15,143 - skydiscover.search.default_discovery_manager - INFO - Iteration 10: Program 49e9ceea-c8e0-47d6-b30b-82d10a76dc81 (parent: cc87ebaf-7c10-4335-a73e-88811cf6970c) completed in 22.28s
+2026-06-16 21:35:15,148 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 10
+2026-06-16 21:35:15,154 - skydiscover.search.base_database - INFO - Database has 10 programs, best program score is 11143.427050
+2026-06-16 21:35:15,477 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 10 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_10
+2026-06-16 21:35:15,542 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 10 with metrics: combined_score=11143.4270, geomean_us=89.7390, pass_rate=1.0000
+2026-06-16 21:35:15,543 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 10 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_10
+2026-06-16 21:35:15,545 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11143.4270, geomean_us=89.7390, pass_rate=1.0000
+2026-06-16 21:35:15,547 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 10
+2026-06-16 21:35:26,409 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:35:26,422 - root - INFO - Evaluating program a6eb7fb6-08e9-4a9e-a015-05914adb8501
+2026-06-16 21:35:33,413 - skydiscover.evaluation.evaluator - INFO - Evaluated program a6eb7fb6-08e9-4a9e-a015-05914adb8501 in 6.99s: combined_score=10674.5231, geomean_us=93.6810, pass_rate=1.0000
+2026-06-16 21:35:33,448 - skydiscover.search.default_discovery_manager - INFO - Iteration 11: Program a6eb7fb6-08e9-4a9e-a015-05914adb8501 (parent: 49e9ceea-c8e0-47d6-b30b-82d10a76dc81) completed in 17.90s
+2026-06-16 21:35:33,455 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10674.5231, geomean_us=93.6810, pass_rate=1.0000
+2026-06-16 21:35:43,278 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:35:43,284 - root - INFO - Evaluating program 86736cea-fe25-41a7-835d-b616e3a54d0b
+2026-06-16 21:35:51,367 - skydiscover.evaluation.evaluator - INFO - Evaluated program 86736cea-fe25-41a7-835d-b616e3a54d0b in 8.08s: combined_score=0.0000, pass_rate=0.0000, error=correctness failed (0/4)
+2026-06-16 21:35:51,369 - skydiscover.search.default_discovery_manager - WARNING - Evaluation failed (attempt 1/3): validity=None, error=correctness failed (0/4)
+----- Generated Solution -----
+# EVOLVE-BLOCK-START
+"""
+Initial Grayscale submission with Triton kernel.
+Y = 0.2989 R + 0.5870 G + 0.1140 B
+"""
+
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def grayscale_kernel(
+    rgb_ptr, out_ptr,
+    n_pixels,
+    BLOCK_SIZE: tl.constexpr,
+    EVEN: tl.constexpr,
+):
+    """RGB->gray with coalesced de-interleaved loads + fma.
+
+    Each program processes BLOCK_SIZE pixels via three coalesced strided
+    loads (no div/mod). On the EVEN fast-path (n_pixels divisible by
+    BLOCK_SIZE, always true for square power-of-two inputs) all masking is
+    dropped to cut transaction/compare overhead. fma fuses the weight chain.
+    """
+    pid = tl.program_id(0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    if EVEN:
+        # One fully-coalesced contiguous load of 3*BLOCK_SIZE elements,
+        # then deinterleave via reshape into R/G/B planes.
+        cidx = block_start * 3 + tl.arange(0, BLOCK_SIZE * 3)
+        vals = tl.load(rgb_ptr + cidx)
+        vals = tl.reshape(vals, (BLOCK_SIZE, 3))
+        r = vals[:, 0]
+        g = vals[:, 1]
+        b = vals[:, 2]
+        gray = tl.fma(0.2989, r, tl.fma(0.5870, g, 0.1140 * b))
+        tl.store(out_ptr + offsets, gray)
+    else:
+        base = offsets * 3
+        mask = offsets < n_pixels
+        r = tl.load(rgb_ptr + base, mask=mask, other=0.0)
+        g = tl.load(rgb_ptr + base + 1, mask=mask, other=0.0)
+        b = tl.load(rgb_ptr + base + 2, mask=mask, other=0.0)
+        gray = tl.fma(0.2989, r, tl.fma(0.5870, g, 0.1140 * b))
+        tl.store(out_ptr + offsets, gray, mask=mask)
+
+
+def custom_kernel(data):
+    """RGB->grayscale using flat contiguous loads for maximal coalescing.
+
+    Uses a larger BLOCK_SIZE and tuned warp/stage counts to saturate
+    H100 memory bandwidth for the bandwidth-bound conversion.
+    """
+    rgb, output = data
+    H, W, C = rgb.shape
+    rgb = rgb.contiguous()
+    n_pixels = H * W
+    BLOCK_SIZE = 2048
+    even = (n_pixels % BLOCK_SIZE) == 0
+    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)
+    grayscale_kernel[grid](
+        rgb, output, n_pixels,
+        BLOCK_SIZE=BLOCK_SIZE,
+        EVEN=even,
+        num_warps=8,
+        num_stages=4,
+    )
+    return output
+# EVOLVE-BLOCK-END
+
+--------------------------
+2026-06-16 21:35:51,372 - skydiscover.search.default_discovery_manager - INFO - Retry 2/3: rebuilding prompt with 1 failed attempt(s)
+2026-06-16 21:36:01,637 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:36:01,850 - root - INFO - Evaluating program 4f930d85-881c-497a-a65a-2761dec07801
+2026-06-16 21:36:09,689 - skydiscover.evaluation.evaluator - INFO - Evaluated program 4f930d85-881c-497a-a65a-2761dec07801 in 7.84s: combined_score=11048.6250, geomean_us=90.5090, pass_rate=1.0000
+2026-06-16 21:36:09,690 - skydiscover.search.default_discovery_manager - INFO - Iteration 12: Program 4f930d85-881c-497a-a65a-2761dec07801 (parent: 49e9ceea-c8e0-47d6-b30b-82d10a76dc81) completed in 36.03s
+2026-06-16 21:36:09,693 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11048.6250, geomean_us=90.5090, pass_rate=1.0000
+2026-06-16 21:36:09,694 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=12)
+2026-06-16 21:36:09,695 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=675.133511, improvement=92.604316, start=11050.822734, end=11143.427050, horizon=2
+2026-06-16 21:36:30,879 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:36:30,886 - root - INFO - Evaluating program 04e6f801-e62d-41bf-84e5-81b3117fa396
+2026-06-16 21:36:30,894 - skydiscover.evaluation.evaluator - INFO - Evaluated program 04e6f801-e62d-41bf-84e5-81b3117fa396 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-16 21:36:30,950 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 4) - saved to /workspace/grayscale-evox/grayscale/skydiscover_runs/run1/search/iteration_4 (score pending)
+2026-06-16 21:36:30,957 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm 04e6f801-e62d-41bf-84e5-81b3117fa396 (12 programs migrated)
+2026-06-16 21:36:46,107 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:36:46,124 - root - INFO - Evaluating program c432b166-e730-468c-a899-b662a9a996b6
+2026-06-16 21:36:52,473 - skydiscover.evaluation.evaluator - INFO - Evaluated program c432b166-e730-468c-a899-b662a9a996b6 in 6.35s: combined_score=6362.2945, geomean_us=157.1760, pass_rate=1.0000
+2026-06-16 21:36:52,475 - skydiscover.search.default_discovery_manager - INFO - Iteration 14: Program c432b166-e730-468c-a899-b662a9a996b6 (parent: 49e9ceea-c8e0-47d6-b30b-82d10a76dc81) completed in 21.52s
+2026-06-16 21:36:52,477 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=6362.2945, geomean_us=157.1760, pass_rate=1.0000
+2026-06-16 21:37:08,863 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:37:08,869 - root - INFO - Evaluating program cc97a423-b4ed-44a8-bf39-23ceac65f496
+2026-06-16 21:37:18,049 - skydiscover.evaluation.evaluator - INFO - Evaluated program cc97a423-b4ed-44a8-bf39-23ceac65f496 in 9.18s: combined_score=6421.9064, geomean_us=155.7170, pass_rate=1.0000
+2026-06-16 21:37:18,051 - skydiscover.search.default_discovery_manager - INFO - Iteration 15: Program cc97a423-b4ed-44a8-bf39-23ceac65f496 (parent: 49e9ceea-c8e0-47d6-b30b-82d10a76dc81) completed in 25.57s
+2026-06-16 21:37:18,053 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 15
+2026-06-16 21:37:18,054 - skydiscover.search.base_database - INFO - Database has 14 programs, best program score is 11143.427050
+2026-06-16 21:37:18,460 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 14 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_15
+2026-06-16 21:37:18,540 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 15 with metrics: combined_score=11143.4270, geomean_us=89.7390, pass_rate=1.0000
+2026-06-16 21:37:18,542 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 15 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_15
+2026-06-16 21:37:18,543 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=6421.9064, geomean_us=155.7170, pass_rate=1.0000
+2026-06-16 21:37:18,544 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=15)
+2026-06-16 21:37:18,545 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=11143.427050, end=11143.427050, horizon=2
+2026-06-16 21:37:39,946 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:37:39,953 - root - INFO - Evaluating program 7289813b-7bdc-41e6-8704-1ae8f9512628
+2026-06-16 21:37:39,964 - skydiscover.evaluation.evaluator - INFO - Evaluated program 7289813b-7bdc-41e6-8704-1ae8f9512628 in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-16 21:37:40,052 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 5) - saved to /workspace/grayscale-evox/grayscale/skydiscover_runs/run1/search/iteration_5 (score pending)
+2026-06-16 21:37:40,060 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm 7289813b-7bdc-41e6-8704-1ae8f9512628 (14 programs migrated)
+2026-06-16 21:37:54,566 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:37:54,570 - root - INFO - Evaluating program bea65a11-080b-43b9-9506-ca765bdc2446
+2026-06-16 21:38:02,168 - skydiscover.evaluation.evaluator - INFO - Evaluated program bea65a11-080b-43b9-9506-ca765bdc2446 in 7.60s: combined_score=11084.9998, geomean_us=90.2120, pass_rate=1.0000
+2026-06-16 21:38:02,171 - skydiscover.search.default_discovery_manager - INFO - Iteration 16: Program bea65a11-080b-43b9-9506-ca765bdc2446 (parent: 49e9ceea-c8e0-47d6-b30b-82d10a76dc81) completed in 22.11s
+2026-06-16 21:38:02,173 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11084.9998, geomean_us=90.2120, pass_rate=1.0000
+2026-06-16 21:38:18,018 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:38:18,026 - root - INFO - Evaluating program 6f0ab8f0-707b-4ebb-81fc-adb31845804e
+2026-06-16 21:38:25,746 - skydiscover.evaluation.evaluator - INFO - Evaluated program 6f0ab8f0-707b-4ebb-81fc-adb31845804e in 7.72s: combined_score=5608.3677, geomean_us=178.3050, pass_rate=1.0000
+2026-06-16 21:38:25,752 - skydiscover.search.default_discovery_manager - INFO - Iteration 17: Program 6f0ab8f0-707b-4ebb-81fc-adb31845804e (parent: 49e9ceea-c8e0-47d6-b30b-82d10a76dc81) completed in 23.47s
+2026-06-16 21:38:25,757 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=5608.3677, geomean_us=178.3050, pass_rate=1.0000
+2026-06-16 21:38:25,762 - skydiscover.search.evox.coevolve_manager - INFO - Stagnation detected -> evolving search strategy (solution_iter=17)
+2026-06-16 21:38:25,767 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=0.000000, improvement=0.000000, start=11143.427050, end=11143.427050, horizon=2
+2026-06-16 21:38:25,889 - skydiscover.search.base_database - INFO - Database has 6 programs, best program score is 2431.748671
+2026-06-16 21:38:41,990 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:38:41,994 - root - INFO - Evaluating program b61a7368-50b9-40ec-92f2-b5a956ee1acf
+2026-06-16 21:38:42,003 - skydiscover.evaluation.evaluator - INFO - Evaluated program b61a7368-50b9-40ec-92f2-b5a956ee1acf in 0.01s: validity=1.0000, combined_score=0.0000
+2026-06-16 21:38:42,077 - skydiscover.search.evox.utils.coevolve_logging - INFO - New search algorithm generated (iteration 6) - saved to /workspace/grayscale-evox/grayscale/skydiscover_runs/run1/search/iteration_6 (score pending)
+2026-06-16 21:38:42,084 - skydiscover.search.evox.coevolve_manager - INFO - Switched to search algorithm b61a7368-50b9-40ec-92f2-b5a956ee1acf (16 programs migrated)
+2026-06-16 21:38:58,162 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:38:58,166 - root - INFO - Evaluating program affe5d7a-9197-4805-b239-d3ae96f249af
+2026-06-16 21:39:04,616 - skydiscover.evaluation.evaluator - INFO - Evaluated program affe5d7a-9197-4805-b239-d3ae96f249af in 6.45s: combined_score=0.0000, pass_rate=0.0000, error=correctness failed (0/4)
+2026-06-16 21:39:04,620 - skydiscover.search.default_discovery_manager - WARNING - Evaluation failed (attempt 1/3): validity=None, error=correctness failed (0/4)
+----- Generated Solution -----
+# EVOLVE-BLOCK-START
+"""
+Initial Grayscale submission with Triton kernel.
+Y = 0.2989 R + 0.5870 G + 0.1140 B
+"""
+
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def grayscale_kernel(
+    rgb_ptr, out_ptr,
+    n_pixels,
+    BLOCK_SIZE: tl.constexpr,
+    EVEN: tl.constexpr,
+):
+    """RGB->gray with coalesced de-interleaved loads + fma.
+
+    Each program processes BLOCK_SIZE pixels via three coalesced strided
+    loads (no div/mod). On the EVEN fast-path (n_pixels divisible by
+    BLOCK_SIZE, always true for square power-of-two inputs) all masking is
+    dropped to cut transaction/compare overhead. fma fuses the weight chain.
+    """
+    pid = tl.program_id(0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    # Contiguous deinterleave: load a flat 3*BLOCK_SIZE chunk in one coalesced
+    # pass, then reshape to (BLOCK_SIZE, 3) to split channels in registers.
+    flat = block_start * 3 + tl.arange(0, BLOCK_SIZE * 3)
+    if EVEN:
+        vals = tl.load(rgb_ptr + flat)
+        vals = tl.reshape(vals, (BLOCK_SIZE, 3))
+        r = vals[:, 0]
+        g = vals[:, 1]
+        b = vals[:, 2]
+        gray = tl.fma(0.2989, r, tl.fma(0.5870, g, 0.1140 * b))
+        tl.store(out_ptr + offsets, gray)
+    else:
+        mask3 = flat < n_pixels * 3
+        vals = tl.load(rgb_ptr + flat, mask=mask3, other=0.0)
+        vals = tl.reshape(vals, (BLOCK_SIZE, 3))
+        r = vals[:, 0]
+        g = vals[:, 1]
+        b = vals[:, 2]
+        gray = tl.fma(0.2989, r, tl.fma(0.5870, g, 0.1140 * b))
+        mask = offsets < n_pixels
+        tl.store(out_ptr + offsets, gray, mask=mask)
+
+
+def custom_kernel(data):
+    """RGB->grayscale using flat contiguous loads for maximal coalescing.
+
+    Uses a larger BLOCK_SIZE and tuned warp/stage counts to saturate
+    H100 memory bandwidth for the bandwidth-bound conversion.
+    """
+    rgb, output = data
+    H, W, C = rgb.shape
+    rgb = rgb.contiguous()
+    n_pixels = H * W
+    # Size-adaptive block: large images use bigger blocks to cut launch
+    # overhead and keep the HBM pipeline saturated; smaller images keep
+    # moderate blocks for occupancy.
+    if n_pixels >= (4096 * 4096):
+        BLOCK_SIZE = 8192
+        nw, ns = 8, 4
+    elif n_pixels >= (2048 * 2048):
+        BLOCK_SIZE = 8192
+        nw, ns = 8, 4
+    else:
+        BLOCK_SIZE = 4096
+        nw, ns = 8, 4
+    even = (n_pixels % BLOCK_SIZE) == 0
+    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)
+    grayscale_kernel[grid](
+        rgb, output, n_pixels,
+        BLOCK_SIZE=BLOCK_SIZE,
+        EVEN=even,
+        num_warps=nw,
+        num_stages=ns,
+    )
+    return output
+# EVOLVE-BLOCK-END
+
+--------------------------
+2026-06-16 21:39:04,634 - skydiscover.search.default_discovery_manager - INFO - Retry 2/3: rebuilding prompt with 1 failed attempt(s)
+2026-06-16 21:39:13,228 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:39:13,232 - root - INFO - Evaluating program 16dd1fc4-9131-4d6c-9c22-bb48b8a24d12
+2026-06-16 21:39:18,820 - skydiscover.evaluation.evaluator - INFO - Evaluated program 16dd1fc4-9131-4d6c-9c22-bb48b8a24d12 in 5.59s: combined_score=10924.1861, geomean_us=91.5400, pass_rate=1.0000
+2026-06-16 21:39:18,826 - skydiscover.search.default_discovery_manager - INFO - Iteration 18: Program 16dd1fc4-9131-4d6c-9c22-bb48b8a24d12 (parent: 49e9ceea-c8e0-47d6-b30b-82d10a76dc81) completed in 36.74s
+2026-06-16 21:39:18,833 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=10924.1861, geomean_us=91.5400, pass_rate=1.0000
+2026-06-16 21:39:35,773 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:39:35,779 - root - INFO - Evaluating program bc4ad801-0e73-4efc-a9e9-4cdae12b9e30
+2026-06-16 21:39:43,461 - skydiscover.evaluation.evaluator - INFO - Evaluated program bc4ad801-0e73-4efc-a9e9-4cdae12b9e30 in 7.68s: combined_score=11206.9932, geomean_us=89.2300, pass_rate=1.0000
+2026-06-16 21:39:43,463 - skydiscover.search.default_discovery_manager - INFO - Iteration 20: Program bc4ad801-0e73-4efc-a9e9-4cdae12b9e30 (parent: 1a57ed81-dcb1-4cf4-af5e-c7156b1b1983) completed in 24.63s
+2026-06-16 21:39:43,467 - skydiscover.search.default_discovery_manager - INFO - [CHECKPOINT] Checkpoint interval reached at iteration 20
+2026-06-16 21:39:43,468 - skydiscover.search.base_database - INFO - Database has 18 programs, best program score is 11206.993164
+2026-06-16 21:39:43,955 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 18 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_20
+2026-06-16 21:39:43,985 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 20 with metrics: combined_score=11206.9932, geomean_us=89.2300, pass_rate=1.0000
+2026-06-16 21:39:43,987 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 20 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_20
+2026-06-16 21:39:43,988 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11206.9932, geomean_us=89.2300, pass_rate=1.0000
+2026-06-16 21:39:43,989 - skydiscover.search.default_discovery_manager - INFO - 🌟 New best solution found at iteration 20
+2026-06-16 21:39:58,998 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:39:59,003 - root - INFO - Evaluating program 413c15bb-a274-41f4-a145-1f721097969f
+2026-06-16 21:40:06,992 - skydiscover.evaluation.evaluator - INFO - Evaluated program 413c15bb-a274-41f4-a145-1f721097969f in 7.99s: combined_score=0.0000, pass_rate=0.0000, error=correctness failed (0/4)
+2026-06-16 21:40:06,995 - skydiscover.search.default_discovery_manager - WARNING - Evaluation failed (attempt 1/3): validity=None, error=correctness failed (0/4)
+----- Generated Solution -----
+# EVOLVE-BLOCK-START
+"""
+Initial Grayscale submission with Triton kernel.
+Y = 0.2989 R + 0.5870 G + 0.1140 B
+"""
+
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def grayscale_kernel(
+    rgb_ptr, out_ptr,
+    n_pixels,
+    BLOCK_SIZE: tl.constexpr,
+    EVEN: tl.constexpr,
+):
+    """RGB->gray with coalesced de-interleaved loads + fma.
+
+    Each program processes BLOCK_SIZE pixels via three coalesced strided
+    loads at consecutive base offsets (no div/mod). On the EVEN fast-path
+    (n_pixels divisible by BLOCK_SIZE, always true for square power-of-two
+    inputs) all masking is dropped to cut transaction/compare overhead.
+    fma fuses the weight chain into two fused multiply-adds.
+    """
+    WR: tl.constexpr = 0.2989
+    WG: tl.constexpr = 0.5870
+    WB: tl.constexpr = 0.1140
+    pid = tl.program_id(0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    # Contiguous load of the interleaved RGB stream, then de-interleave in
+    # registers. This turns three stride-3 gathers into one fully coalesced
+    # contiguous read of 3*BLOCK_SIZE elements -> maximal HBM utilization.
+    lin = tl.arange(0, BLOCK_SIZE * 3)
+    cbase = block_start * 3 + lin
+    if EVEN:
+        vals = tl.load(rgb_ptr + cbase)
+        v = tl.reshape(vals, (BLOCK_SIZE, 3))
+        r = v[:, 0]
+        g = v[:, 1]
+        b = v[:, 2]
+        gray = tl.fma(WR, r, tl.fma(WG, g, WB * b))
+        tl.store(out_ptr + offsets, gray)
+    else:
+        cmask = cbase < (n_pixels * 3)
+        vals = tl.load(rgb_ptr + cbase, mask=cmask, other=0.0)
+        v = tl.reshape(vals, (BLOCK_SIZE, 3))
+        r = v[:, 0]
+        g = v[:, 1]
+        b = v[:, 2]
+        gray = tl.fma(WR, r, tl.fma(WG, g, WB * b))
+        mask = offsets < n_pixels
+        tl.store(out_ptr + offsets, gray, mask=mask)
+
+
+def custom_kernel(data):
+    """RGB->grayscale via flat contiguous strided loads (no div/mod).
+
+    Uses BLOCK_SIZE=4096 with 8 warps / 4 stages to saturate H100 HBM
+    bandwidth, and drops masking on the EVEN fast-path when n_pixels
+    divides the block size evenly (true for square power-of-two inputs).
+    """
+    rgb, output = data
+    H, W, C = rgb.shape
+    rgb = rgb.contiguous()
+    n_pixels = H * W
+    BLOCK_SIZE = 2048
+    even = (n_pixels % BLOCK_SIZE) == 0
+    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)
+    grayscale_kernel[grid](
+        rgb, output, n_pixels,
+        BLOCK_SIZE=BLOCK_SIZE,
+        EVEN=even,
+        num_warps=8,
+        num_stages=4,
+    )
+    return output
+# EVOLVE-BLOCK-END
+
+--------------------------
+2026-06-16 21:40:06,999 - skydiscover.search.default_discovery_manager - INFO - Retry 2/3: rebuilding prompt with 1 failed attempt(s)
+2026-06-16 21:40:16,087 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:40:16,093 - root - INFO - Evaluating program 26be5680-df4b-4e45-acdd-652d3f2f3288
+2026-06-16 21:40:25,590 - skydiscover.evaluation.evaluator - INFO - Evaluated program 26be5680-df4b-4e45-acdd-652d3f2f3288 in 9.50s: combined_score=11129.6605, geomean_us=89.8500, pass_rate=1.0000
+2026-06-16 21:40:25,592 - skydiscover.search.default_discovery_manager - INFO - Iteration 21: Program 26be5680-df4b-4e45-acdd-652d3f2f3288 (parent: bc4ad801-0e73-4efc-a9e9-4cdae12b9e30) completed in 41.60s
+2026-06-16 21:40:25,593 - skydiscover.search.default_discovery_manager - INFO - Metrics: combined_score=11129.6605, geomean_us=89.8500, pass_rate=1.0000
+2026-06-16 21:40:45,527 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:40:45,535 - root - INFO - Evaluating program ca437dc2-f685-43bd-b868-f1f4455c58f3
+2026-06-16 21:40:52,497 - skydiscover.evaluation.evaluator - INFO - Evaluated program ca437dc2-f685-43bd-b868-f1f4455c58f3 in 6.96s: combined_score=0.0000, pass_rate=0.0000, error=correctness failed (0/4)
+2026-06-16 21:40:52,500 - skydiscover.search.default_discovery_manager - WARNING - Evaluation failed (attempt 1/3): validity=None, error=correctness failed (0/4)
+----- Generated Solution -----
+# EVOLVE-BLOCK-START
+"""
+Initial Grayscale submission with Triton kernel.
+Y = 0.2989 R + 0.5870 G + 0.1140 B
+"""
+
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def grayscale_kernel(
+    rgb_ptr, out_ptr,
+    n_pixels,
+    BLOCK_SIZE: tl.constexpr,
+    EVEN: tl.constexpr,
+):
+    """RGB->gray via fully-contiguous block load + in-register deinterleave.
+
+    Each program loads a contiguous span of 3*BLOCK_SIZE floats in ONE
+    coalesced transaction (perfect 128-bit alignment), reshapes to
+    [BLOCK_SIZE, 3], and splits channels in-register. This replaces the
+    three strided gathers (stride-3 -> wasted bandwidth) with a single
+    dense streaming read, maximizing H100 HBM throughput. fma fuses the
+    weight chain into two FMAs. EVEN fast-path drops all masking.
+    """
+    WR: tl.constexpr = 0.2989
+    WG: tl.constexpr = 0.5870
+    WB: tl.constexpr = 0.1140
+    pid = tl.program_id(0)
+    block_start = pid * BLOCK_SIZE
+    pix = block_start + tl.arange(0, BLOCK_SIZE)
+    flat = pid * (BLOCK_SIZE * 3) + tl.arange(0, BLOCK_SIZE * 3)
+    if EVEN:
+        vals = tl.load(rgb_ptr + flat)
+        m = tl.reshape(vals, (BLOCK_SIZE, 3))
+        r = m[:, 0]
+        g = m[:, 1]
+        b = m[:, 2]
+        gray = tl.fma(WR, r, tl.fma(WG, g, WB * b))
+        tl.store(out_ptr + pix, gray)
+    else:
+        fmask = flat < (n_pixels * 3)
+        vals = tl.load(rgb_ptr + flat, mask=fmask, other=0.0)
+        m = tl.reshape(vals, (BLOCK_SIZE, 3))
+        r = m[:, 0]
+        g = m[:, 1]
+        b = m[:, 2]
+        gray = tl.fma(WR, r, tl.fma(WG, g, WB * b))
+        tl.store(out_ptr + pix, gray, mask=pix < n_pixels)
+
+
+def custom_kernel(data):
+    """RGB->grayscale using flat contiguous loads for maximal coalescing.
+
+    Uses a larger BLOCK_SIZE and tuned warp/stage counts to saturate
+    H100 memory bandwidth for the bandwidth-bound conversion.
+    """
+    rgb, output = data
+    H, W, C = rgb.shape
+    rgb = rgb.contiguous()
+    n_pixels = H * W
+    # Size-tuned launch params: larger blocks for big images cut grid launch
+    # overhead and keep the HBM pipeline saturated; smaller block for small
+    # images preserves occupancy. All square power-of-two inputs hit EVEN.
+    if n_pixels >= (4096 * 4096):
+        BLOCK_SIZE = 8192
+        nw = 8
+        ns = 4
+    elif n_pixels >= (2048 * 2048):
+        BLOCK_SIZE = 8192
+        nw = 8
+        ns = 4
+    else:
+        BLOCK_SIZE = 4096
+        nw = 8
+        ns = 4
+    even = (n_pixels % BLOCK_SIZE) == 0
+    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)
+    grayscale_kernel[grid](
+        rgb, output, n_pixels,
+        BLOCK_SIZE=BLOCK_SIZE,
+        EVEN=even,
+        num_warps=nw,
+        num_stages=ns,
+    )
+    return output
+# EVOLVE-BLOCK-END
+
+--------------------------
+2026-06-16 21:40:52,527 - skydiscover.search.default_discovery_manager - INFO - Retry 2/3: rebuilding prompt with 1 failed attempt(s)
+2026-06-16 21:41:09,031 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:41:09,037 - root - INFO - Evaluating program 16e4fa7f-64d4-4bcb-a4f7-c5a397e80104
+2026-06-16 21:41:16,891 - skydiscover.evaluation.evaluator - INFO - Evaluated program 16e4fa7f-64d4-4bcb-a4f7-c5a397e80104 in 7.85s: combined_score=0.0000, pass_rate=0.0000, error=correctness failed (0/4)
+2026-06-16 21:41:16,947 - skydiscover.search.default_discovery_manager - WARNING - Evaluation failed (attempt 2/3): validity=None, error=correctness failed (0/4)
+----- Generated Solution -----
+# EVOLVE-BLOCK-START
+"""
+Initial Grayscale submission with Triton kernel.
+Y = 0.2989 R + 0.5870 G + 0.1140 B
+"""
+
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def grayscale_kernel(
+    rgb_ptr, out_ptr,
+    n_pixels,
+    BLOCK_SIZE: tl.constexpr,
+    EVEN: tl.constexpr,
+):
+    """RGB->gray with coalesced de-interleaved loads + fma.
+
+    Each program processes BLOCK_SIZE pixels via three coalesced strided
+    loads (no div/mod). On the EVEN fast-path (n_pixels divisible by
+    BLOCK_SIZE, always true for square power-of-two inputs) all masking is
+    dropped to cut transaction/compare overhead. fma fuses the weight chain.
+    """
+    WR: tl.constexpr = 0.2989
+    WG: tl.constexpr = 0.5870
+    WB: tl.constexpr = 0.1140
+    pid = tl.program_id(0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    # 2D contiguous tile load: [BLOCK_SIZE, 3]. The flat RGB stream is read
+    # as a dense [BLOCK,3] block (one coalesced streaming transaction with
+    # full cache-line utilization) instead of three stride-3 gathers that
+    # waste 2/3 of every fetched line. Channels are split along axis 1.
+    row = offsets[:, None] * 3
+    col = tl.arange(0, 3)[None, :]
+    ptrs = rgb_ptr + row + col
+    if EVEN:
+        m = tl.load(ptrs)
+    else:
+        mask = offsets[:, None] < n_pixels
+        m = tl.load(ptrs, mask=mask, other=0.0)
+    r = tl.sum(tl.where(col == 0, m, 0.0), axis=1)
+    g = tl.sum(tl.where(col == 1, m, 0.0), axis=1)
+    b = tl.sum(tl.where(col == 2, m, 0.0), axis=1)
+    gray = tl.fma(WR, r, tl.fma(WG, g, WB * b))
+    if EVEN:
+        tl.store(out_ptr + offsets, gray)
+    else:
+        tl.store(out_ptr + offsets, gray, mask=offsets < n_pixels)
+
+
+def custom_kernel(data):
+    """RGB->grayscale using flat contiguous loads for maximal coalescing.
+
+    Uses a larger BLOCK_SIZE and tuned warp/stage counts to saturate
+    H100 memory bandwidth for the bandwidth-bound conversion.
+    """
+    rgb, output = data
+    H, W, C = rgb.shape
+    rgb = rgb.contiguous()
+    n_pixels = H * W
+    # Size-tuned launch params: larger blocks for big images cut grid launch
+    # overhead and keep the HBM pipeline saturated; smaller block for small
+    # images preserves occupancy. All square power-of-two inputs hit EVEN.
+    if n_pixels >= (2048 * 2048):
+        BLOCK_SIZE = 2048
+        nw = 8
+        ns = 4
+    else:
+        BLOCK_SIZE = 1024
+        nw = 8
+        ns = 4
+    even = (n_pixels % BLOCK_SIZE) == 0
+    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)
+    grayscale_kernel[grid](
+        rgb, output, n_pixels,
+        BLOCK_SIZE=BLOCK_SIZE,
+        EVEN=even,
+        num_warps=nw,
+        num_stages=ns,
+    )
+    return output
+# EVOLVE-BLOCK-END
+
+--------------------------
+2026-06-16 21:41:16,955 - skydiscover.search.default_discovery_manager - INFO - Retry 3/3: rebuilding prompt with 2 failed attempt(s)
+2026-06-16 21:41:39,489 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-16 21:41:39,492 - root - INFO - Evaluating program a0f6b37e-8407-4440-b6ce-71dfec77fe17
+2026-06-16 21:41:50,549 - skydiscover.evaluation.evaluator - INFO - Evaluated program a0f6b37e-8407-4440-b6ce-71dfec77fe17 in 11.06s: combined_score=0.0000, pass_rate=0.0000, error=correctness failed (0/4)
+2026-06-16 21:41:50,561 - skydiscover.search.default_discovery_manager - WARNING - Evaluation failed (attempt 3/3): validity=None, error=correctness failed (0/4)
+----- Generated Solution -----
+# EVOLVE-BLOCK-START
+"""
+Initial Grayscale submission with Triton kernel.
+Y = 0.2989 R + 0.5870 G + 0.1140 B
+"""
+
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def grayscale_kernel(
+    rgb_ptr, out_ptr,
+    n_pixels,
+    BLOCK_SIZE: tl.constexpr,
+    EVEN: tl.constexpr,
+):
+    """RGB->gray with coalesced de-interleaved loads + fma.
+
+    Each program processes BLOCK_SIZE pixels via three coalesced strided
+    loads (no div/mod). On the EVEN fast-path (n_pixels divisible by
+    BLOCK_SIZE, always true for square power-of-two inputs) all masking is
+    dropped to cut transaction/compare overhead. fma fuses the weight chain.
+    """
+    WR: tl.constexpr = 0.2989
+    WG: tl.constexpr = 0.5870
+    WB: tl.constexpr = 0.1140
+    pid = tl.program_id(0)
+    block_start = pid * BLOCK_SIZE
+    offsets = block_start + tl.arange(0, BLOCK_SIZE)
+    # Dense contiguous read of 3*BLOCK floats in one streaming transaction
+    # (full cache-line utilization) instead of three stride-3 gathers that
+    # waste 2/3 of every fetched line. Deinterleave the [BLOCK,3] tile in
+    # registers via channel-masked reduction (robust, no fragile slicing).
+    col = tl.arange(0, 3)
+    flat = (block_start * 3) + (offsets[:, None] - block_start) * 3 + col[None, :]
+    if EVEN:
+        m = tl.load(rgb_ptr + flat)
+    else:
+        rmask = offsets[:, None] < n_pixels
+        m = tl.load(rgb_ptr + flat, mask=rmask, other=0.0)
+    r = tl.sum(tl.where(col[None, :] == 0, m, 0.0), axis=1)
+    g = tl.sum(tl.where(col[None, :] == 1, m, 0.0), axis=1)
+    b = tl.sum(tl.where(col[None, :] == 2, m, 0.0), axis=1)
+    gray = tl.fma(WR, r, tl.fma(WG, g, WB * b))
+    if EVEN:
+        tl.store(out_ptr + offsets, gray)
+    else:
+        mask = offsets < n_pixels
+        tl.store(out_ptr + offsets, gray, mask=mask)
+
+
+def custom_kernel(data):
+    """RGB->grayscale using flat contiguous loads for maximal coalescing.
+
+    Uses a larger BLOCK_SIZE and tuned warp/stage counts to saturate
+    H100 memory bandwidth for the bandwidth-bound conversion.
+    """
+    rgb, output = data
+    H, W, C = rgb.shape
+    rgb = rgb.contiguous()
+    n_pixels = H * W
+    # Size-tuned launch params: larger blocks for big images cut grid launch
+    # overhead and keep the HBM pipeline saturated; smaller block for small
+    # images preserves occupancy. All square power-of-two inputs hit EVEN.
+    if n_pixels >= (4096 * 4096):
+        BLOCK_SIZE = 2048
+        nw = 8
+        ns = 3
+    elif n_pixels >= (2048 * 2048):
+        BLOCK_SIZE = 2048
+        nw = 8
+        ns = 3
+    else:
+        BLOCK_SIZE = 1024
+        nw = 4
+        ns = 3
+    even = (n_pixels % BLOCK_SIZE) == 0
+    grid = (triton.cdiv(n_pixels, BLOCK_SIZE),)
+    grayscale_kernel[grid](
+        rgb, output, n_pixels,
+        BLOCK_SIZE=BLOCK_SIZE,
+        EVEN=even,
+        num_warps=nw,
+        num_stages=ns,
+    )
+    return output
+# EVOLVE-BLOCK-END
+
+--------------------------
+2026-06-16 21:41:50,565 - skydiscover.search.default_discovery_manager - ERROR - All 3 retry attempts failed. Final error: correctness failed (0/4)
+2026-06-16 21:41:50,570 - skydiscover.search.evox.coevolve_manager - WARNING - Iteration 23 failed (used 3 attempts): Evaluator failed after 3 attempts: correctness failed (0/4)
+2026-06-16 21:41:50,572 - skydiscover.search.evox.utils.search_scorer - INFO - Search strategy score: combined=463.805009, improvement=63.566114, start=11143.427050, end=11206.993164, horizon=2
+2026-06-16 21:41:50,691 - skydiscover.search.evox.coevolve_manager - INFO - [SOLUTION EVOLUTION] Evolution completed: evox
+2026-06-16 21:41:51,230 - skydiscover.search.utils.checkpoint_manager - INFO - [CHECKPOINT] Saved database with 19 programs to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_25
+2026-06-16 21:41:51,267 - skydiscover.search.main_controller - INFO - [CHECKPOINT] Saved best program at checkpoint 25 with metrics: combined_score=11206.9932, geomean_us=89.2300, pass_rate=1.0000
+2026-06-16 21:41:51,268 - skydiscover.search.main_controller - INFO - Saved checkpoint at iteration 25 to grayscale/skydiscover_runs/run1/checkpoints/checkpoint_25
+2026-06-16 21:41:51,275 - skydiscover.search.main_controller - INFO - Using tracked best program: bc4ad801-0e73-4efc-a9e9-4cdae12b9e30
+2026-06-16 21:41:51,277 - skydiscover.search.main_controller - INFO - Discovery process complete. Best program has metrics: combined_score=11206.9932, geomean_us=89.2300, pass_rate=1.0000
+2026-06-16 21:41:51,335 - skydiscover.search.main_controller - INFO - Saved best program to grayscale/skydiscover_runs/run1/best/best_program.py with program info to grayscale/skydiscover_runs/run1/best/best_program_info.json

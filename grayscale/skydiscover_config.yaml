@@ -4,12 +4,11 @@ log_level: INFO
 
 llm:
   models:
-    - name: "claude-sonnet-4-6"
+    - name: "claude-opus-4-8"
       weight: 1.0
   # api_base auto-detected from "claude-" prefix → https://api.anthropic.com/v1/
   # api_key resolved from ANTHROPIC_API_KEY env var
-  temperature: 0.7
-  top_p: null  # Anthropic rejects requests that set both temperature and top_p
+  temperature: null
   max_tokens: 8000
   timeout: 180
   retries: 3
